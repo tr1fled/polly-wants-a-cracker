@@ -225,6 +225,9 @@ txfilter_hirestex(uint64 g64crc, Checksum r_crc64, uint16 *palette, N64FormatSiz
 TAPI uint64 TAPIENTRY
 txfilter_checksum(uint8 *src, int width, int height, int size, int rowStride, uint8 *palette);
 
+TAPI wchar_t * TAPIENTRY
+txfilter_getFormattedDmpTxFilename(wchar_t *wbuf, N64FormatSize n64FmtSz, Checksum r_crc64);
+
 TAPI boolean TAPIENTRY
 txfilter_dmptx(uint8 *src, int width, int height, int rowStridePixel, uint16 gfmt, N64FormatSize n64FmtSz, Checksum r_crc64);
 

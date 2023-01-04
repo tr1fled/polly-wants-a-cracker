@@ -23,6 +23,7 @@ struct CachedTexture
 
 	graphics::ObjectHandle name;
 	u64		crc = 0;
+	u64		riceCrc = 0;
 //	float	fulS, fulT;
 //	WORD	ulS, ulT, lrS, lrT;
 	float	offsetS, offsetT;
@@ -66,6 +67,7 @@ struct TextureCache
 	void activateDummy(u32 _t);
 	void activateMSDummy(u32 _t);
 	void update(u32 _t);
+	bool getDmpTxStatus();
 	void toggleDumpTex();
 
 	static TextureCache & get();

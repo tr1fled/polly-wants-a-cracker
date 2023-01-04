@@ -145,6 +145,13 @@ void Config::resetToDefaults()
 	onScreenDisplay.statistics = 0;
 	onScreenDisplay.pos = posBottomLeft;
 
+	sceneRipper.enableRipping = 0;
+	sceneRipper.actorsOnly = 0;
+	sceneRipper.sceneRipMode = 0;
+	sceneRipper.CSVExport = 0;
+	sceneRipper.continuous = 0;
+	sceneRipper.delay = 30;
+
 	for (u32 idx = 0; idx < HotKey::hkTotal; ++idx) {
 		hotkeys.enabledKeys[idx] = 0;
 		hotkeys.keys[idx] = 0;

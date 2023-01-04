@@ -429,12 +429,21 @@ void ConfigDialog::_init(bool reInit, bool blockCustomSettings)
 	ui->renderingResolutionCheckBox->setChecked(config.onScreenDisplay.renderingResolution != 0);
 	ui->statisticsCheckBox->setChecked(config.onScreenDisplay.statistics != 0);
 
+	// Scene ripper settings
+	ui->ripperGroupBox->setChecked(config.sceneRipper.enableRipping != 0);
+	ui->ripperActorsOnlyCheckBox->setChecked(config.sceneRipper.actorsOnly != 0);
+	ui->ripperRipmodeComboBox->setCurrentIndex(config.sceneRipper.sceneRipMode);
+	ui->ripperCSVExportCheckBox->setChecked(config.sceneRipper.CSVExport != 0);
+	ui->ripperContinuousCheckBox->setChecked(false); // TODO: Implement continuous ripping mode
+	ui->ripperSpinBox->setValue(config.sceneRipper.delay != 0 ? config.sceneRipper.delay : 30);
+
 	// Buttons
 	ui->buttonBox->button(QDialogButtonBox::Ok)->setText(tr("Save and Close"));
 	ui->buttonBox->button(QDialogButtonBox::Save)->setText(tr("Save"));
 	ui->buttonBox->button(QDialogButtonBox::Close)->setText(tr("Close"));
 	ui->buttonBox->button(QDialogButtonBox::RestoreDefaults)->setText(tr("Restore Defaults"));
 
+// Debug settings
 	ui->dumpLowCheckBox->setChecked((config.debug.dumpMode & DEBUG_LOW) != 0);
 	ui->dumpNormalCheckBox->setChecked((config.debug.dumpMode & DEBUG_NORMAL) != 0);
 	ui->dumpDetailCheckBox->setChecked((config.debug.dumpMode & DEBUG_DETAIL) != 0);
@@ -468,7 +477,8 @@ void ConfigDialog::_init(bool reInit, bool blockCustomSettings)
 
 #ifndef DEBUG_DUMP
 	for (int i = 0; i < ui->tabWidget->count(); ++i) {
-		if (tr("Debug") == ui->tabWidget->tabText(i)) {
+		if (tr("Debug") == ui->tabWidget->tabText(i) ||
+			tr("Scene Ripping") == ui->tabWidget->tabText(i)) {
 			ui->tabWidget->removeTab(i);
 			break;
 		}
@@ -779,6 +789,14 @@ void ConfigDialog::accept(bool justSave) {
 	config.onScreenDisplay.renderingResolution = ui->renderingResolutionCheckBox->isChecked() ? 1 : 0;
 	config.onScreenDisplay.statistics = ui->statisticsCheckBox->isChecked() ? 1 : 0;
 
+	// Scene Ripping settings
+	config.sceneRipper.enableRipping = ui->ripperGroupBox->isChecked() ? 1 : 0;
+	config.sceneRipper.actorsOnly = ui->ripperActorsOnlyCheckBox->isChecked() ? 1 : 0;
+	config.sceneRipper.sceneRipMode = ui->ripperRipmodeComboBox->currentIndex();
+	config.sceneRipper.CSVExport = ui->ripperCSVExportCheckBox->isChecked() ? 1 : 0;
+	config.sceneRipper.continuous = ui->ripperContinuousCheckBox->isChecked() ? 1 : 0;
+	config.sceneRipper.delay = ui->ripperSpinBox->value();
+
 	for (quint32 idx = 0; idx < Config::HotKey::hkTotal; ++idx) {
 		config.hotkeys.keys[idx] = config.hotkeys.enabledKeys[idx] = 0;
 		QListWidgetItem * pItem = ui->hotkeyListWidget->item(idx);
@@ -789,6 +807,7 @@ void ConfigDialog::accept(bool justSave) {
 		}
 	}
 
+	// Debug settings
 	config.debug.dumpMode = 0;
 	if (ui->dumpLowCheckBox->isChecked())
 		config.debug.dumpMode |= DEBUG_LOW;
@@ -1007,6 +1026,12 @@ void ConfigDialog::on_fontSizeSpinBox_valueChanged(int value)
 {
 	m_font.setPixelSize(value);
 	ui->fontPreviewLabel->setFont(m_font);
+}
+
+void ConfigDialog::on_ripperGroupBox_toggled(bool checked)
+{
+	if(!checked)
+		ui->ripperContinuousCheckBox->setChecked(false);
 }
 
 void ConfigDialog::on_tabWidget_currentChanged(int tab)

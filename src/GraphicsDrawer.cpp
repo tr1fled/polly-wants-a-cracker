@@ -1706,6 +1706,11 @@ void GraphicsDrawer::clearColorBuffer(float *_pColor)
 
 bool GraphicsDrawer::isClipped(u32 _v0, u32 _v1, u32 _v2) const
 {
+#ifdef DEBUG_DUMP
+	if(g_debugger.isRipMode())
+		return false;
+#endif
+
 	if ((triangles.vertices[_v0].clip & triangles.vertices[_v1].clip & triangles.vertices[_v2].clip) != 0) {
 		m_statistics.clippedTris++;
 		return true;

@@ -36,7 +36,10 @@ enum Axis { X ,Y, Z, W };
 struct SPVertex
 {
 	f32 x, y, z, w;
-	f32 nx, ny, nz, __pad0;
+#ifdef DEBUG_DUMP
+	f32 sx, sy, sz, __pad0;
+#endif
+	f32 nx, ny, nz, __pad1;
 	f32 r, g, b, a;
 	f32 flat_r, flat_g, flat_b, flat_a;
 	f32 s, t;

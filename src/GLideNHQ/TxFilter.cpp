@@ -580,6 +580,17 @@ TxFilter::checksum64(uint8 *src, int width, int height, int size, int rowStride,
 	return 0;
 }
 
+wchar_t *
+TxFilter::getFormattedDmpTxFilename(wchar_t *wbuf, N64FormatSize n64FmtSz, Checksum r_crc64)
+{
+	if (n64FmtSz._format == 0x2) {
+			tx_swprintf(wbuf, 256, wst("%ls#%08X#%01X#%01X#%08X_ciByRGBA.png"), _ident.c_str(), r_crc64._texture, n64FmtSz._format, n64FmtSz._size, r_crc64._palette);
+		} else {
+			tx_swprintf(wbuf, 256, wst("%ls#%08X#%01X#%01X_all.png"), _ident.c_str(), r_crc64._texture, n64FmtSz._format, n64FmtSz._size);
+		}
+	return wbuf;
+}
+
 boolean
 TxFilter::dmptx(uint8 *src, int width, int height, int rowStridePixel, ColorFormat gfmt, N64FormatSize n64FmtSz, Checksum r_crc64)
 {
@@ -613,15 +624,9 @@ TxFilter::dmptx(uint8 *src, int width, int height, int rowStridePixel, ColorForm
 		if (!osal_path_existsW(tmpbuf.c_str()) && osal_mkdirp(tmpbuf.c_str()) != 0)
 			return 0;
 
-		if (n64FmtSz._format == 0x2) {
-			wchar_t wbuf[256];
-			tx_swprintf(wbuf, 256, wst("/%ls#%08X#%01X#%01X#%08X_ciByRGBA.png"), _ident.c_str(), r_crc64._texture, n64FmtSz._format, n64FmtSz._size, r_crc64._palette);
-			tmpbuf.append(wbuf);
-		} else {
-			wchar_t wbuf[256];
-			tx_swprintf(wbuf, 256, wst("/%ls#%08X#%01X#%01X_all.png"), _ident.c_str(), r_crc64._texture, n64FmtSz._format, n64FmtSz._size);
-			tmpbuf.append(wbuf);
-		}
+		wchar_t wbuf[256];
+		tmpbuf.append(wst("/"));
+		tmpbuf.append(getFormattedDmpTxFilename(wbuf, n64FmtSz, r_crc64));
 
 #ifdef OS_WINDOWS
 		if ((fp = _wfopen(tmpbuf.c_str(), wst("wb"))) != nullptr) {

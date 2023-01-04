@@ -84,6 +84,15 @@ txfilter_checksum(uint8 *src, int width, int height, int size, int rowStride, ui
   return 0;
 }
 
+TAPI wchar_t * TAPIENTRY
+txfilter_getFormattedDmpTxFilename(wchar_t *wbuf, N64FormatSize n64FmtSz, Checksum r_crc64)
+{
+  if (txFilter)
+  return txFilter->getFormattedDmpTxFilename(wbuf, n64FmtSz, r_crc64);
+
+  return nullptr;
+}
+
 TAPI boolean TAPIENTRY
 txfilter_dmptx(uint8 *src, int width, int height, int rowStridePixel, uint16 gfmt, N64FormatSize n64FmtSz, Checksum r_crc64)
 {

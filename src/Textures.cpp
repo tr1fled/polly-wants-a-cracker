@@ -1094,10 +1094,10 @@ void TextureCache::_loadBackground(CachedTexture *pTexture)
 		config.textureFilter.txHiresEnable != 0 &&
 		config.hotkeys.enabledKeys[Config::HotKey::hkTexDump] != 0) ||
 		config.textureFilter.txDump) {
-		txfilter_dmptx((u8*)pDest, pTexture->width, pTexture->height,
-			pTexture->width, (u16)u32(glInternalFormat),
-			N64FormatSize(pTexture->format, pTexture->size),
-			ricecrc);
+			txfilter_dmptx((u8*)pDest, pTexture->width, pTexture->height,
+				pTexture->width, (u16)u32(glInternalFormat),
+				N64FormatSize(pTexture->format, pTexture->size),
+				ricecrc);
 	}
 
 	bool bLoaded = false;
@@ -1490,10 +1490,10 @@ void TextureCache::_loadFast(u32 _tile, CachedTexture *_pTexture)
 			config.textureFilter.txHiresEnable != 0 &&
 			config.hotkeys.enabledKeys[Config::HotKey::hkTexDump] != 0) ||
 			config.textureFilter.txDump) {
-			txfilter_dmptx((u8*)m_tempTextureHolder.data(), tmptex.width, tmptex.height,
-						   tmptex.width, (u16)u32(glInternalFormat),
-						   N64FormatSize(_pTexture->format, _pTexture->size),
-						   ricecrc);
+				txfilter_dmptx((u8*)m_tempTextureHolder.data(), tmptex.width, tmptex.height,
+					tmptex.width, (u16)u32(glInternalFormat),
+					N64FormatSize(_pTexture->format, _pTexture->size),
+					ricecrc);
 		}
 
 		bool bLoaded = false;
@@ -1595,6 +1595,7 @@ void TextureCache::_loadAccurate(u32 _tile, CachedTexture *_pTexture)
 		return;
 
 	bool force32bitFormat = false;
+	_pTexture->riceCrc = ricecrc;
 	_pTexture->max_level = 0;
 
 	if (currentCombiner()->usesLOD() && gSP.texture.level > 1 && _tile > 0) {
@@ -1725,7 +1726,7 @@ void TextureCache::_loadAccurate(u32 _tile, CachedTexture *_pTexture)
 			config.textureFilter.txHiresEnable != 0 &&
 			config.hotkeys.enabledKeys[Config::HotKey::hkTexDump] != 0) ||
 			config.textureFilter.txDump) {
-			txfilter_dmptx((u8*)m_tempTextureHolder.data(), tmptex.width, tmptex.height,
+				txfilter_dmptx((u8*)m_tempTextureHolder.data(), tmptex.width, tmptex.height,
 					tmptex.width, (u16)u32(glInternalFormat),
 					N64FormatSize(_pTexture->format, _pTexture->size),
 					ricecrc);
@@ -2032,6 +2033,11 @@ void TextureCache::toggleDumpTex()
 		displayLoadProgress(L"Texture dump - OFF\n");
 		std::this_thread::sleep_for(std::chrono::seconds(1));
 	}
+}
+
+bool TextureCache::getDmpTxStatus()
+{
+	return m_toggleDumpTex;
 }
 
 void TextureCache::update(u32 _t)

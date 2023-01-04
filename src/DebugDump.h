@@ -191,7 +191,25 @@ static const char *aAText[] =
 	"SHADE", "ENVIRONMENT", "1", "0",
 };
 
+static const char *tri_type[4] = {
+	"TRIANGLE", "TEXRECT", "FILLRECT", "BACKGROUND"
+};
 
+static const char *tex_type[4] = {
+	"WRAP/NO CLAMP", "MIRROR/NO CLAMP", "WRAP/CLAMP", "MIRROR/CLAMP"
+};
+
+static const char *combined_wrapmode_type[17] = {
+	/**
+	WN: WRAP/NO CLAMP
+    MN: MIRROR/NO CLAMP
+    WC: WRAP/CLAMP
+    MC: MIRROR/CLAMP
+    NT: NOTEXTURE
+	**/
+	"WN_WN", "WN_MN", "WN_WC", "WN_MC", "MN_WN", "MN_MN", "MN_WC", "MN_MC", "WC_WN", "WC_MN", "WC_WC", "WC_MC", "MC_WN",
+	"MC_MN", "MC_WC", "MC_MC", "NT_NT"
+};
 
 #else
 

@@ -148,6 +148,15 @@ void _loadSettings(QSettings & settings)
 	config.onScreenDisplay.pos = settings.value("osdPos", config.onScreenDisplay.pos).toInt();
 	settings.endGroup();
 
+	settings.beginGroup("sceneRipper");
+	config.sceneRipper.enableRipping = settings.value("enableRipping", config.sceneRipper.enableRipping).toInt();
+	config.sceneRipper.actorsOnly = settings.value("actorsOnly", config.sceneRipper.actorsOnly).toInt();
+	config.sceneRipper.sceneRipMode = settings.value("sceneRipMode", config.sceneRipper.sceneRipMode).toInt();
+	config.sceneRipper.CSVExport = settings.value("CSVExport", config.sceneRipper.CSVExport).toInt();
+	config.sceneRipper.continuous = 0;
+	config.sceneRipper.delay = settings.value("delay", config.sceneRipper.delay).toInt();
+	settings.endGroup();
+
 	settings.beginGroup("hotkeys");
 	for (u32 idx = 0; idx < Config::HotKey::hkTotal; ++idx) {
 		config.hotkeys.keys[idx] = settings.value(Config::hotkeyIniName(idx), config.hotkeys.keys[idx]).toInt();
@@ -284,6 +293,13 @@ void _writeSettingsToFile(const QString & filename)
 	settings.setValue("showStatistics", config.onScreenDisplay.statistics);
 	settings.setValue("osdPos", config.onScreenDisplay.pos);
 	settings.endGroup();
+
+	settings.beginGroup("sceneRipper");
+	settings.setValue("enableRipping", config.sceneRipper.enableRipping);
+	settings.setValue("actorsOnly", config.sceneRipper.actorsOnly);
+	settings.setValue("sceneRipMode", config.sceneRipper.sceneRipMode);
+	settings.setValue("CSVExport", config.sceneRipper.CSVExport);
+	settings.setValue("delay", config.sceneRipper.delay);
 
 	settings.beginGroup("hotkeys");
 	for (u32 idx = 0; idx < Config::HotKey::hkTotal; ++idx) {
@@ -548,6 +564,14 @@ void saveCustomRomSettings(const QString & _strIniFolder, const char * _strRomNa
 	WriteCustomSetting2(onScreenDisplay, showRenderingResolution, renderingResolution);
 	WriteCustomSetting2(onScreenDisplay, showStatistics, statistics);
 	WriteCustomSetting2(onScreenDisplay, osdPos, pos);
+	settings.endGroup();
+
+	settings.beginGroup("sceneRipper");
+	WriteCustomSetting(sceneRipper, enableRipping);
+	WriteCustomSetting(sceneRipper, actorsOnly);
+	WriteCustomSetting(sceneRipper, sceneRipMode);
+	WriteCustomSetting(sceneRipper, CSVExport);
+	WriteCustomSetting(sceneRipper, delay);
 	settings.endGroup();
 
 	settings.beginGroup("hotkeys");

@@ -5,6 +5,7 @@
 #include <algorithm>
 #include "N64.h"
 #include "GLideN64.h"
+#include "Debugger.h"
 #include "DebugDump.h"
 #include "Types.h"
 #include "RSP.h"
@@ -781,6 +782,23 @@ void gSPTransformVertex(u32 v, SPVertex * spVtx, float mtx[4][4])
 {
 #ifndef __NEON_OPT
 	float x, y, z;
+#ifdef DEBUG_DUMP
+	float ripMatrix[4][4];
+	const unsigned int ripMode = config.sceneRipper.sceneRipMode;
+
+	switch(ripMode) {
+		case 0:
+			CopyMatrix(ripMatrix, gSP.matrix.modelView[gSP.matrix.modelViewi]);
+			break;
+		case 1 ... 32:
+			CopyMatrix(ripMatrix, gSP.matrix.modelView[ripMode - 1]);
+			break;
+		default:
+			// projection
+			CopyMatrix(ripMatrix, mtx);
+			break;
+	}
+#endif
 	for (int i = 0; i < VNUM; ++i) {
 		SPVertex & vtx = spVtx[v+i];
 		x = vtx.x;
@@ -790,6 +808,20 @@ void gSPTransformVertex(u32 v, SPVertex * spVtx, float mtx[4][4])
 		vtx.y = x * mtx[0][1] + y * mtx[1][1] + z * mtx[2][1] + mtx[3][1];
 		vtx.z = x * mtx[0][2] + y * mtx[1][2] + z * mtx[2][2] + mtx[3][2];
 		vtx.w = x * mtx[0][3] + y * mtx[1][3] + z * mtx[2][3] + mtx[3][3];
+#ifdef DEBUG_DUMP
+		vtx.sx = 	x * ripMatrix[0][0] +
+					y * ripMatrix[1][0] +
+					z * ripMatrix[2][0] +
+					ripMatrix[3][0];
+		vtx.sy = 	x * ripMatrix[0][1] +
+					y * ripMatrix[1][1] +
+					z * ripMatrix[2][1] +
+					ripMatrix[3][1];
+		vtx.sz = 	x * ripMatrix[0][2] +
+					y * ripMatrix[1][2] +
+					z * ripMatrix[2][2] +
+					ripMatrix[3][2];
+#endif
 	}
 #else
 	void gSPTransformVector_NEON(float vtx[4], float mtx[4][4]);
@@ -821,7 +853,7 @@ void gSPProcessVertex(u32 v, SPVertex * spVtx)
 
 	if (gSP.matrix.billboard)
 		gSPBillboardVertex<VNUM>(v, spVtx);
-
+	
 	gSPClipVertex<VNUM>(v, spVtx);
 
 	if (gSP.geometryMode & G_LIGHTING) {
@@ -1510,6 +1542,15 @@ void gSP1Quadrangle( s32 v0, s32 v1, s32 v2, s32 v3 )
 
 bool gSPCullVertices( u32 v0, u32 vn )
 {
+#ifdef DEBUG_DUMP
+	if(g_debugger.isRipMode())
+	{
+		if(!config.sceneRipper.actorsOnly)
+			return false;	
+		return true;
+	}
+#endif
+
 	if (vn < v0) {
 		// Aidyn Chronicles - The First Mage seems to pass parameters in reverse order.
 		std::swap(v0, vn);

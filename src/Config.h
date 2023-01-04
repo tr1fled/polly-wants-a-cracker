@@ -247,6 +247,15 @@ struct Config
 	} hotkeys;
 
 	struct {
+		u32 enableRipping;
+		u32 actorsOnly;
+		u32 sceneRipMode;
+		u32 CSVExport;
+		u32 continuous;
+		u32 delay;
+	} sceneRipper;
+
+	struct {
 		u32 dumpMode;
 	} debug;
 

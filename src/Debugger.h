@@ -32,8 +32,10 @@ public:
 
 	bool isDebugMode() const { return m_bDebugMode; }
 	bool isCaptureMode() const { return m_bCapture; }
+	bool isRipMode() const { return m_bRipMode; }
 
 	void draw();
+	void performSceneRip();
 
 private:
 	struct TexInfo {
@@ -44,6 +46,7 @@ private:
 
 	struct Vertex {
 		f32 x, y, z, w;
+		f32 sx, sy, sz;
 		f32 r, g, b, a;
 		f32 s0, t0, s1, t1;
 		u32 modify;
@@ -55,6 +58,9 @@ private:
 			, y(_v.y)
 			, z(_v.z)
 			, w(_v.w)
+			, sx(_v.sx)
+			, sy(_v.sy)
+			, sz(_v.sz)
 			, r(_v.r)
 			, g(_v.g)
 			, b(_v.b)
@@ -160,6 +166,8 @@ private:
 	void _drawMouseCursor();
 	void _findSelected();
 
+	u32 _performSceneRip();
+
 	typedef std::list<TriInfo> Triangles;
 	typedef std::list<const TexInfo*> TexInfos;
 	typedef std::set<u32> FrameBufferAddrs;
@@ -175,6 +183,7 @@ private:
 	Page m_curPage = Page::general;
 	bool m_bDebugMode = false;
 	bool m_bCapture = false;
+	bool m_bRipMode = false;
 
 	long m_clickX = 0;
 	long m_clickY = 0;
