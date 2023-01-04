@@ -248,6 +248,7 @@ struct Config
 
 	struct {
 		u32 enableRipping;
+		u32 entireScene;
 		u32 actorsOnly;
 		u32 sceneRipMode;
 		u32 CSVExport;

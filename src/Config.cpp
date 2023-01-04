@@ -146,6 +146,7 @@ void Config::resetToDefaults()
 	onScreenDisplay.pos = posBottomLeft;
 
 	sceneRipper.enableRipping = 0;
+	sceneRipper.entireScene = 1;
 	sceneRipper.actorsOnly = 0;
 	sceneRipper.sceneRipMode = 0;
 	sceneRipper.CSVExport = 0;

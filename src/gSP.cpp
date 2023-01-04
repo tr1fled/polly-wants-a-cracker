@@ -1543,11 +1543,13 @@ void gSP1Quadrangle( s32 v0, s32 v1, s32 v2, s32 v3 )
 bool gSPCullVertices( u32 v0, u32 vn )
 {
 #ifdef DEBUG_DUMP
-	if(g_debugger.isRipMode())
+	if(g_debugger.isDebugMode() && config.sceneRipper.enableRipping)
 	{
-		if(!config.sceneRipper.actorsOnly)
-			return false;	
-		return true;
+		if(config.sceneRipper.entireScene)
+			return false;
+
+		if(config.sceneRipper.actorsOnly)
+			return true;
 	}
 #endif
 

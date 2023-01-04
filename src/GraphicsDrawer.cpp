@@ -1707,7 +1707,7 @@ void GraphicsDrawer::clearColorBuffer(float *_pColor)
 bool GraphicsDrawer::isClipped(u32 _v0, u32 _v1, u32 _v2) const
 {
 #ifdef DEBUG_DUMP
-	if(g_debugger.isRipMode())
+	if(g_debugger.isDebugMode() && config.sceneRipper.enableRipping && config.sceneRipper.entireScene)
 		return false;
 #endif
 

@@ -32,7 +32,6 @@ public:
 
 	bool isDebugMode() const { return m_bDebugMode; }
 	bool isCaptureMode() const { return m_bCapture; }
-	bool isRipMode() const { return m_bRipMode; }
 
 	void draw();
 	void performSceneRip();
@@ -58,9 +57,11 @@ private:
 			, y(_v.y)
 			, z(_v.z)
 			, w(_v.w)
+#ifdef DEBUG_DUMP
 			, sx(_v.sx)
 			, sy(_v.sy)
 			, sz(_v.sz)
+#endif
 			, r(_v.r)
 			, g(_v.g)
 			, b(_v.b)
@@ -183,7 +184,6 @@ private:
 	Page m_curPage = Page::general;
 	bool m_bDebugMode = false;
 	bool m_bCapture = false;
-	bool m_bRipMode = false;
 
 	long m_clickX = 0;
 	long m_clickY = 0;

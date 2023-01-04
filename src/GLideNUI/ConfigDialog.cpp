@@ -431,6 +431,7 @@ void ConfigDialog::_init(bool reInit, bool blockCustomSettings)
 
 	// Scene ripper settings
 	ui->ripperGroupBox->setChecked(config.sceneRipper.enableRipping != 0);
+	ui->ripperEntireSceneCheckBox->setChecked(config.sceneRipper.entireScene != 0);
 	ui->ripperActorsOnlyCheckBox->setChecked(config.sceneRipper.actorsOnly != 0);
 	ui->ripperRipmodeComboBox->setCurrentIndex(config.sceneRipper.sceneRipMode);
 	ui->ripperCSVExportCheckBox->setChecked(config.sceneRipper.CSVExport != 0);
@@ -791,6 +792,7 @@ void ConfigDialog::accept(bool justSave) {
 
 	// Scene Ripping settings
 	config.sceneRipper.enableRipping = ui->ripperGroupBox->isChecked() ? 1 : 0;
+	config.sceneRipper.entireScene = ui->ripperEntireSceneCheckBox->isChecked() ? 1 : 0;
 	config.sceneRipper.actorsOnly = ui->ripperActorsOnlyCheckBox->isChecked() ? 1 : 0;
 	config.sceneRipper.sceneRipMode = ui->ripperRipmodeComboBox->currentIndex();
 	config.sceneRipper.CSVExport = ui->ripperCSVExportCheckBox->isChecked() ? 1 : 0;

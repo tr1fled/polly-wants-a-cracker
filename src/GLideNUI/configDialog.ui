@@ -4016,7 +4016,7 @@ The font's full name can be found in Settings&gt;Personalization&gt;Fonts</strin
         <property name="geometry">
          <rect>
           <x>170</x>
-          <y>40</y>
+          <y>55</y>
           <width>111</width>
           <height>23</height>
          </rect>
@@ -4089,7 +4089,7 @@ The font's full name can be found in Settings&gt;Personalization&gt;Fonts</strin
         <property name="geometry">
          <rect>
           <x>170</x>
-          <y>70</y>
+          <y>80</y>
           <width>111</width>
           <height>23</height>
          </rect>
@@ -4129,8 +4129,8 @@ The font's full name can be found in Settings&gt;Personalization&gt;Fonts</strin
         </property>
         <property name="geometry">
          <rect>
-          <x>10</x>
-          <y>80</y>
+          <x>170</x>
+          <y>30</y>
           <width>121</width>
           <height>23</height>
          </rect>
@@ -4140,6 +4140,28 @@ The font's full name can be found in Settings&gt;Personalization&gt;Fonts</strin
         </property>
         <property name="text">
          <string>Actors Only</string>
+        </property>
+       </widget>
+       <widget class="QCheckBox" name="ripperEntireSceneCheckBox">
+        <property name="enabled">
+         <bool>true</bool>
+        </property>
+        <property name="geometry">
+         <rect>
+          <x>10</x>
+          <y>80</y>
+          <width>121</width>
+          <height>23</height>
+         </rect>
+        </property>
+        <property name="toolTip">
+         <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;When this option is enabled, the scene ripper will attempt to rip all triangles of the level.&lt;/p&gt;&lt;p&gt;Culled/clipped triangles will be included in the scene rip.&lt;/p&gt;&lt;p&gt;[Recommended:&lt;span style=&quot; font-style:italic;&quot;&gt; Checked, unless you run into crashing issues.&lt;/span&gt;]&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+        </property>
+        <property name="text">
+         <string>Entire Scene?</string>
+        </property>
+        <property name="checked">
+         <bool>true</bool>
         </property>
        </widget>
       </widget>

@@ -225,10 +225,10 @@ void Debugger::_debugKeys()
 	if(osal_is_key_pressed(KEY_Home, 0x0001))
 	{
 		if (config.sceneRipper.enableRipping != 0 &&
-		config.textureFilter.txHiresEnable != 0 &&
-		textureCache().getDmpTxStatus() &&
-		config.textureFilter.txEnhancementMode == 0 &&
-		config.frameBufferEmulation.enable != 0) {
+			config.textureFilter.txHiresEnable != 0 &&
+			textureCache().getDmpTxStatus() &&
+			config.textureFilter.txEnhancementMode == 0 &&
+			config.frameBufferEmulation.enable != 0) {
 			performSceneRip();
 		}
 	}
@@ -1884,12 +1884,10 @@ void Debugger::draw()
 
 void Debugger::performSceneRip()
 {
-	m_bRipMode = true;
 	textureCache().update(0);
 	textureCache().update(1);
 	currentCombiner()->update(true);
 	u32 result = _performSceneRip();
-	m_bRipMode = false;
 }
 
 #else // DEBUG_DUMP
