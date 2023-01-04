@@ -5,42 +5,12 @@
 
 ---
 
-## Continuous Integration
+## About
 
-**CI** builds have the latest `features` / `fixes` , are generally <br>
-stable, but may introduce **bugs** and have *incomplete translations* .
+Modified version of GLideN64 that allows for scene ripping from N64 games.
 
-<br>
+Features 34 different rip modes, vertex color, fog information, and CSV export support.
 
-To obtain **CI** builds for the `mupen64plus` & <br>
-`zilmar-spec` emulators do the following :
+Developed on RMG 0.2.5 and Blender 3.3.1. Included python script should work on 2.80+.
 
-##### With Github
-
-Download them from the latest **[Workflow]** .
-
-##### Without Github
-
-Download them from the latest **[Release]** .
-
-<br>
-
-##### Version
-
-*Choose between `32-bit` / `64-bit`* <br>
-*according to your emulator version.*
-
-##### Earlier Builds
-
-*For earlier builds you will have to log in and <br>
-download them from an older* ***[Workflow]*** *.*
-
-
-<!----------------------------------------------------------------------------->
-
-[Wiki]: https://github.com/gonetz/GLideN64/wiki
-
-[Release]: https://github.com/gonetz/GLideN64/releases/tag/github-actions
-[Workflow]: https://github.com/gonetz/GLideN64/actions?query=branch%3Amaster
-
-[Github Badge]: https://github.com/gonetz/GLideN64/actions/workflows/build.yml/badge.svg?branch=master
+Continuous ripping support is planned to be added for animation ripping. Pull requests are welcome.
