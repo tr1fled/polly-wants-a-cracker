@@ -1,5 +1,5 @@
 
-# GLideN64
+# GLideN64-SceneRipper
 
 *A next generation* ***Graphics Plugin*** *for* ***N64*** *emulators.*
 
@@ -9,22 +9,51 @@
 
 Modified version of GLideN64 that allows for scene ripping from N64 games.
 
-Features 34 different rip modes, vertex color, fog information, and CSV export support.
+Features 34 different rip modes, vertex color, fog information, continuous ripping (for animations) and CSV export support.
 
-Developed on RMG 0.2.5 and Blender 3.3.1. Included python script should work on 2.80+.
-
-Continuous ripping support is planned to be added for animation ripping. Pull requests are welcome.
+Developed and used with RMG 0.3.0.
 
 How to use
 ---
 
-1. Download/build and replace existing GLideN64 video plugin with the one in this repo.
-2. 'Enable Scene Ripping' support in GLide settings tab
-3. Enable 'Use texture pack' in Texture enchancement tab, keep Enchancement option set to 'None'
-4. Enable and set a hotkey for 'Toggle Textures Dump' option under hotkeys tab.
-5. Start a game, go into the area you want to rip.
-6. Press toggle texture dump hotkey, make sure you get a confirmation it is on.
-7. Enter GLideN64's debugger by pressing Scroll Lock then Insert key buttons.
-8. Press Home button to trigger a dump. You'll get a confirmation it worked.
-9. n64_scene.glr file should have been created in your designated texture_dump folder
-10. Use the included Blender python script to import into Blender.
+1. Build / Download the modified plugin for your OS (Currently Windows and Linux qt-mupen64plus support only)
+2. Place the plugin into your emulator's gfx plugin folder
+3. Launch the emulator, go into graphics settings
+4. Go to the `Texture Enchancement` tab, enable `Use texture pack` and `Generate scene rip textures` options
+5. Go to the `Hotkey` tab, enable `Toggle textures dump` and `Perform scene rip` options. Setup a different key for both.
+6. Go to the `Scene Ripping` tab, enable `Enable Scene Ripping` and configure any additional options you want there
+
+| Option        | Description                                                                              |
+| ------------- | ---------------------------------------------------------------------------------------- |
+| Rip Mode      | Default will work in most cases. Certain games need to make use of mode 0 or higher.     |
+| Entire Scene  | Ripper will attempt to rip all loaded triangles. Recommended off during continuous rips. |
+| Continuous    | Enables continuous scene rip mode.                                                       |
+| Target Frames | Use with Continuous. Specifies number of frames to rip. Use 0 for infinite.              |
+| Export CSV    | Self-explanatory. Useful for debugging/parsing information to other formats.             |
+
+7. Save and close settings. Start the game you want to rip from. Go to the general area.
+8. Press the hotkey to enable texture dumping, you should get a confirmation stating it's on.
+9. Press the hotkey to perform a scene rip. You should see a confirmation that the scene was ripped based on your current OSD settings.
+  - Note: If you don't see any confirmations of a succesful scene rip, double check the settings mentioned above.
+10. Go into your `(configured texture dump folder)/(N64 Game Name)/GLideNHQ/scene_rips` folder
+11. You should see all of the textures that the scene ripper dumped along with one or more scene_rip.*.glr files.
+  - Note: Initial ripped file will be `scene_rip.glr`. All future files will be `scene_rip.*.glr` (where * is always a sequential number).
+12. Use accompanying Blender addon ([blender-import-glr](https://github.com/Luctaris/blender-import-glr)) to import the ripped scene into an editable environment.
+
+Building
+---
+Follow the GLideN64 compile instructions found on the main repos wiki
+- Windows Guide: [Build From Source (Windows)](https://github.com/gonetz/GLideN64/wiki/Build-From-Source-(Windows))
+- Linux Guide: [Build From Source (Linux)](https://github.com/gonetz/GLideN64/wiki/Build-From-Source-(Linux))
+
+Make sure to add `-DDEBUG_DUMP=ON` option, otherwise you won't see or be able to use any scene ripping functions!
+
+My cmake config: `cmake -DCMAKE_BUILD_TYPE=Release -DMUPENPLUSAPI_GLIDENUI=ON -DMUPENPLUSAPI=ON -DDEBUG_DUMP=ON ../../src/`
+
+For Windows specifically, I personally use and recommend using the msys2 setup. Linux compilation works out of the box with cmake.
+
+Issues
+---
+If you have an issue using this modified plugin please **DO NOT** report them under the main GLideN64 repository. Use the issue tracker of this repository instead.
+
+Feature / Pull Requests are welcome.
