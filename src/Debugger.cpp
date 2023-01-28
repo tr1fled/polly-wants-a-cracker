@@ -15,9 +15,11 @@
 #include "TextDrawer.h"
 #include "DebugDump.h"
 #include "Debugger.h"
+#include "Log.h"
 #include "osal_keys.h"
 #include <osal_files.h>
 #include "TxFilterExport.h"
+#include "GLideNHQ/txWidestringHelper.h"
 #include "PluginAPI.h"
 #include "wst.h"
 #include <filesystem>
@@ -161,8 +163,10 @@ Debugger::~Debugger()
 
 void Debugger::checkDebugState()
 {
-	if (osal_is_key_pressed(KEY_ScrollLock, 0x0001))
-		m_bDebugMode = !m_bDebugMode;
+	if (osal_is_key_pressed(KEY_ScrollLock, 0x0001)) {
+		if (config.sceneRipper.continuous == 0)
+			m_bDebugMode = !m_bDebugMode;
+	}
 
 	if (m_bDebugMode && osal_is_key_pressed(KEY_Insert, 0x0001))
 		m_bCapture = true;
@@ -224,13 +228,7 @@ void Debugger::_debugKeys()
 
 	if(osal_is_key_pressed(KEY_Home, 0x0001))
 	{
-		if (config.sceneRipper.enableRipping != 0 &&
-			config.textureFilter.txHiresEnable != 0 &&
-			textureCache().getDmpTxStatus() &&
-			config.textureFilter.txEnhancementMode == 0 &&
-			config.frameBufferEmulation.enable != 0) {
-			performSceneRip();
-		}
+		performSceneRip();
 	}
 
 	if (osal_is_key_pressed(KEY_Q, 0x0001))
@@ -738,22 +736,22 @@ void Debugger::_drawGeneral(f32 _ulx, f32 _uly, f32 _yShift)
 	OUTPUT1("a0: %s", saRGBText[m_triSel->combine.saRGB0]);
 	OUTPUT1("b0: %s", sbRGBText[m_triSel->combine.sbRGB0]);
 	OUTPUT1("c0: %s", mRGBText[m_triSel->combine.mRGB0]);
-	OUTPUT1("d0: %s", aRGBText[m_triSel->combine.aRGB0]);
+	OUTPUT1("d0: %s", aText[m_triSel->combine.aRGB0]);
 	COL_AC();
-	OUTPUT1("Aa0: %s", saAText[m_triSel->combine.saA0]);
-	OUTPUT1("Ab0: %s", sbAText[m_triSel->combine.sbA0]);
+	OUTPUT1("Aa0: %s", aText[m_triSel->combine.saA0]);
+	OUTPUT1("Ab0: %s", aText[m_triSel->combine.sbA0]);
 	OUTPUT1("Ac0: %s", mAText[m_triSel->combine.mA0]);
-	OUTPUT1("Ad0: %s", aAText[m_triSel->combine.aA0]);
+	OUTPUT1("Ad0: %s", aText[m_triSel->combine.aA0]);
 	COL_CC();
 	OUTPUT1("a1: %s", saRGBText[m_triSel->combine.saRGB1]);
 	OUTPUT1("b1: %s", sbRGBText[m_triSel->combine.sbRGB1]);
 	OUTPUT1("c1: %s", mRGBText[m_triSel->combine.mRGB1]);
-	OUTPUT1("d1: %s", aRGBText[m_triSel->combine.aRGB1]);
+	OUTPUT1("d1: %s", aText[m_triSel->combine.aRGB1]);
 	COL_AC();
-	OUTPUT1("Aa1: %s", saAText[m_triSel->combine.saA1]);
-	OUTPUT1("Ab1: %s", sbAText[m_triSel->combine.sbA1]);
+	OUTPUT1("Aa1: %s", aText[m_triSel->combine.saA1]);
+	OUTPUT1("Ab1: %s", aText[m_triSel->combine.sbA1]);
 	OUTPUT1("Ac1: %s", mAText[m_triSel->combine.mA1]);
-	OUTPUT1("Ad1: %s", aAText[m_triSel->combine.aA1]);
+	OUTPUT1("Ad1: %s", aText[m_triSel->combine.aA1]);
 }
 
 void Debugger::_drawTex(f32 _ulx, f32 _uly, f32 _yShift)
@@ -772,8 +770,8 @@ void Debugger::_drawTex(f32 _ulx, f32 _uly, f32 _yShift)
 	}
 	const CachedTexture * texture = m_triSel->tex_info[tex]->texture;
 	const gDPLoadTileInfo & texLoadInfo = m_triSel->tex_info[tex]->texLoadInfo;
-	OUTPUT1("CRC: 0x%llx", texture->crc);
-	OUTPUT1("riceCrc: 0x%llx", texture->riceCrc);
+	OUTPUT1("CRC: 0x%08X", texture->crc);
+	OUTPUT1("ripCrc: 0x%016lX", texture->ripCrc);
 	OUTPUT1("tex_size: %s", ImageSizeText[texture->size]);
 	OUTPUT1("tex_format: %s", ImageFormatText[texture->format]);
 	OUTPUT1("width: %d", texture->width);
@@ -1062,8 +1060,8 @@ void Debugger::_drawTexture(f32 _ulx, f32 _uly, f32 _lrx, f32 _lry, f32 _yShift)
 	OUTPUT1("load: %s", LoadType[texLoadInfo.loadType&1]);
 	OUTPUT1("t_mem: %04x", pTexture->tMem);
 	OUTPUT1("framebuffer: %s", FrameBufferType[(u32)pTexture->frameBufferTexture]);
-	OUTPUT1("crc: %llx", pTexture->crc);
-	OUTPUT1("riceCrc: %llx", pTexture->riceCrc);
+	OUTPUT1("crc: 0x%08X", pTexture->crc);
+	OUTPUT1("ripCrc: 0x%016lX", pTexture->ripCrc);
 	//	OUTPUT1("texrecting: %d", cache[_debugger.tex_sel].texrecting);
 	OUTPUT1("tex_size: %s", ImageSizeText[pTexture->size]);
 	OUTPUT1("tex_format: %s", ImageFormatText[pTexture->format]);
@@ -1284,7 +1282,7 @@ void Debugger::_drawDebugInfo()
 	const f32 lrx = (f32)(winWidth) * (2.0f * scaleX) - 1.0f;
 	const f32 lry = -((f32)(winHeight * 5 / 8)* (2.0f * scaleY) - 1.0f);
 
-	while (!osal_is_key_pressed(KEY_Insert, 0x0001)) {
+	while (!osal_is_key_pressed(KEY_Insert, 0x0001) && !m_bRip) {
 		osal_keys_update_state();
 		_debugKeys();
 		_drawFrameBuffer(frameBufferList().findBuffer(*m_curFBAddr));
@@ -1333,46 +1331,62 @@ void Debugger::_drawDebugInfo()
 		wnd.swapBuffers();
 	}
 
+	if(m_bRip)
+	{
+		s32 result = _performSceneRip();
+		if(result < 0) {
+			string tmpStr = "performSceneRip: result=";
+			tmpStr += to_string(result);
+			LOG(LOG_ERROR, tmpStr.c_str());
+		}
+	}
+
 	m_triangles.clear();
 	m_triSel = m_triangles.end();
 	g_textDrawer.setTextColor(config.font.colorf);
 	m_bCapture = false;
+
+	if(m_bRip) {
+		m_bDebugMode = false;
+		m_bRip = false;
+	}
 }
 
-u32 Debugger::_performSceneRip()
+s32 Debugger::_performSceneRip()
 {
-	wchar_t txDumpPath[MAX_PATH] = {0};
-	wchar_t * pTexDumpPath = config.textureFilter.txDumpPath;
-	if (wcslen(config.textureFilter.txDumpPath) == 0 ||
-		osal_is_absolute_path(config.textureFilter.txDumpPath) == 0) {
-		api().GetUserCachePath(txDumpPath);
-		wcscat(txDumpPath, wst("/texture_dump"));
-		pTexDumpPath = txDumpPath;
+	wchar_t *pTxDumpPath = config.textureFilter.txDumpPath;
+	wstring txDumpPath(pTxDumpPath);
+
+	if(txDumpPath.length() == 0 || osal_is_absolute_path(pTxDumpPath) == 0) {
+		api().GetUserCachePath(pTxDumpPath);
+		txDumpPath = pTxDumpPath;
+		txDumpPath += wst("/texture_dump");
 	}
 
-	wchar_t wRomName[21] = {0};
-	mbstowcs(wRomName, RSP.romname, 21);
+	wchar_t wcRomName[21] = {0};
+	mbstowcs(wcRomName, RSP.romname, 21);
+	wstring wRomName(wcRomName);
 
-	wchar_t wSrPath[MAX_PATH] = {0};
-	wcscpy(wSrPath, txDumpPath);
-	wcscat(wSrPath, wst("/"));
-	wcscat(wSrPath, wRomName);
-	wcscat(wSrPath, wst("/GLideNHQ/scene_rips"));
+	// replace ':' in ROM name with '-'
+	removeColon(wRomName);
+
+	wstring wSrPath = txDumpPath;
+	wSrPath += wst('/');
+	wSrPath += wRomName;
+	wSrPath += wst("/GLideNHQ/scene_rips");
 
 	FILE *srFile = nullptr;
 
-	if (!osal_path_existsW(wSrPath) && osal_mkdirp(wSrPath) != 0)
+	if (!osal_path_existsW(wSrPath.c_str()) && osal_mkdirp(wSrPath.c_str()) != 0)
 		return -1;
 
-	wchar_t wSrFile[MAX_PATH] = {0};
-	wcscpy(wSrFile, wSrPath);
-	wcscat(wSrFile, wst("/n64_scene"));
+	wstring wSrFile = wSrPath;
+	wSrFile += wst("/n64_scene");
 
-	wchar_t wSrOnlyFile[MAX_PATH] = {0};
-	wcscpy(wSrOnlyFile, wSrFile);
-	wcscat(wSrOnlyFile, wst(".glr"));
+	wstring wSrOnlyFile = wSrFile;
+	wSrOnlyFile += wst(".glr");
 
-	if(osal_path_existsW(wSrOnlyFile))
+	if(osal_path_existsW(wSrOnlyFile.c_str()))
 	{
 		namespace fs = std::filesystem;
 
@@ -1390,88 +1404,51 @@ u32 Debugger::_performSceneRip()
 			try {
 				wsCurFilename = file.path().filename().wstring();
 			} catch (std::filesystem::__cxx11::filesystem_error e) {
-				// skips unicode file/dir instead of crashing
+				// HACK: skips unicode file/dir instead of crashing
 				continue;
 			}
 
-			if(wsCurFilename.length() != 18)
+			size_t match_idx = wsCurFilename.find(wst("n64_scene."));
+
+			if(match_idx == -1 || match_idx != 0)
 				continue;
 
-			int start_idx = wsCurFilename.find(wst("n64_scene."));
-			int ext_start_idx = wsCurFilename.find(wst(".glr"));
-			
-			if(start_idx != 0 && ext_start_idx != 14)
-				continue;
+			size_t ext_start_idx = wsCurFilename.find(wst(".glr"));
 
-			wstring wsCurFilenameNums(wsCurFilename.substr(10,4));
+			wstring wsCurFilenameNums(wsCurFilename.substr(10, ext_start_idx - 10));
 
 			bool isValid = true;
 
-			for(u32 i = 0; i < 4; i++) {
+			for(u32 i = 0; i < wsCurFilenameNums.length(); ++i) {
         		if(!isdigit(wsCurFilenameNums[i]))
             		isValid = false;
 			}
-
-			if(wsCurFilename.substr(14,4)!= wst(".glr"))
-				isValid = false;
 
 			if(isValid)
 				duplicate_num++;
 		}
 
-		wchar_t numBuf[MAX_PATH] = {0};
-
 		if(duplicate_num == -1) {
-			swprintf(numBuf, MAX_PATH, wst(".%04d%s"), 0, ".glr");
+			wSrFile += wst(".0.glr");
 		} else {
-			swprintf(numBuf, MAX_PATH, wst(".%04d%s"), (duplicate_num + 1), ".glr");
+			wstring wNum = to_wstring(duplicate_num + 1);
+			wSrFile += wst('.');
+			wSrFile += wNum;
+			wSrFile += wst(".glr");
 		}
-
-		wcscat(wSrFile, numBuf);
 	}
 	else
 	{
-		wcscpy(wSrFile, wSrOnlyFile);
+		wSrFile = wSrOnlyFile;
 	}
 
 #ifdef OS_WINDOWS
 	if ((srFile = _wfopen(wSrFile, wst("wb"))) != nullptr) {
 #else
-	char srFilebuf[MAX_PATH];
-	wcstombs(srFilebuf, wSrFile, MAX_PATH);
+	char srFilebuf[MAX_PATH] = {0};
+	wcstombs(srFilebuf, wSrFile.c_str(), MAX_PATH);
 	if ((srFile = fopen(srFilebuf, "wb")) != nullptr) {
 #endif
-		typedef struct
-		{
-			f32 scene_x, scene_y, scene_z;
-			f32 r, g, b, a;
-			f32 t0_s, t0_t;
-			f32 t1_s, t1_t;
-		} RipVertex;
-
-		typedef struct
-		{
-			RipVertex vertices[3];
-			u32 __PAD0;
-			f32 prim_r, prim_g, prim_b, prim_a;
-			f32 env_r, env_g, env_b, env_a;
-			f32 blend_r, blend_g, blend_b, blend_a;
-			u64 t0_riceCrc;
-			u64 t1_riceCrc;
-			u8 t0_wrapmode, t1_wrapmode;
-			u8 t0_fmt, t0_size;
-			u8 t1_fmt, t1_size;
-			u16 __PAD1;
-		} RipTriangle;
-
-		typedef struct
-		{
-			const u8 MAGIC[6] = { 'G', 'L', '6', '4', 'R', '\0'};
-			const u16 VERSION = 1;
-			char romName[20] = {0}; // no null terminator
-			u32 num_triangles = 0;
-			f32 fog_r, fog_g, fog_b;
-		} RipHeader;
 
 		const u32 ALL_NUM_TRIANGLES = static_cast<u32>(m_triangles.size());
 
@@ -1490,7 +1467,9 @@ u32 Debugger::_performSceneRip()
 
 		RipHeader header;
 		header.num_triangles = num_triangles;
-		strncpy(header.romName, RSP.romname, 20); // omitting null-terminator
+		char mRomName[20] = {0};
+		wcstombs(mRomName, wRomName.c_str(), 20);
+		strncpy(header.romName, mRomName, 20); // omitting null-terminator
 
 		RipTriangle triangles[num_triangles];
 
@@ -1499,12 +1478,19 @@ u32 Debugger::_performSceneRip()
 		u32 tri_counter = 0;
 		m_triSel = m_triangles.cbegin();
 
+		//update texture cache before writing
+		textureCache().update(0);
+		textureCache().update(1);
+		currentCombiner()->update(true);
+
 		for(u32 i = 0; i < ALL_NUM_TRIANGLES; i++) {
 			if((u32)(m_triSel->type) != 0)
 			{
 				++m_triSel;
 				continue;
 			}
+
+			triangles[tri_counter];
 
 			if(tri_counter == 0)
 			{
@@ -1513,118 +1499,60 @@ u32 Debugger::_performSceneRip()
 				header.fog_b = m_triSel->fog_color.b;
 			}
 
-			const Vertex & v0 = m_triSel->vertices[0];
-			const Vertex & v1 = m_triSel->vertices[1];
-			const Vertex & v2 = m_triSel->vertices[2];
+			const u32 A0val = m_triSel->combine.saRGB0;
 
-			const int tmpA0 = m_triSel->combine.saRGB0;
-			const int tmpB0 = m_triSel->combine.sbRGB0;
+			f32 t0_sS, t0_tS, t0_offsetS, t0_offsetT;
+			f32 t1_sS, t1_tS, t1_offsetS, t1_offsetT;
+			u64 t0_gcrc, t1_gcrc;
+			u8 t0_sm, t0_tm, t0_wm;
+			u8 t1_sm, t1_tm, t1_wm;
+			
+			t0_sS = t0_tS = t1_sS = t1_tS = 1.0f;
+			t0_offsetS = t0_offsetT = t1_offsetS = t1_offsetT = 0.0f;
+			t0_gcrc = t1_gcrc = 0;
+			t0_sm = t0_tm = t1_sm = t1_tm = 4;
+			t0_wm = t1_wm = 16;
 
-			f32 t0_sS = 1.0f;
-			f32 t0_tS = 1.0f;
-			f32 t0_offsetS = 0.0f;
-			f32 t0_offsetT = 0.0f;
-			u8 t0_sM = 4;
-			u8 t0_tM = 4;
-			u8 t0_wM = 16;
-			u64 t0_ricecrc = 0;
-			u8 t0_format = 0;
-			u8 t0_size = 0;
-
-			f32 t1_sS = 1.0f;
-			f32 t1_tS = 1.0f;
-			f32 t1_offsetS = 0.0f;
-			f32 t1_offsetT = 0.0f;
-			u8 t1_sM = 4;
-			u8 t1_tM = 4;
-			u8 t1_wM = 16;
-			u64 t1_ricecrc = 0;
-			u8 t1_format = 0;
-			u8 t1_size = 0;
-
-			if(tmpA0 == 1 || tmpB0 == 1)
-			{
-				if(m_triSel->tex_info[0]) {
-					const CachedTexture *t0 = m_triSel->tex_info[0]->texture;
-					t0_sS = m_triSel->tex_info[0]->scales * t0->scaleS;
-					t0_tS = m_triSel->tex_info[0]->scalet * t0->scaleT;
-					t0_offsetS = t0->offsetS;
-					t0_offsetT = t0->offsetT;
-					t0_sM = ((t0->clampS << 1) | t0->mirrorS) & 3;
-					t0_tM = ((t0->clampT << 1) | t0->mirrorT) & 3;
-					t0_wM = ((t0_sM << 2) | t0_tM) & 15;
-					t0_format = t0->format;
-					t0_size = t0->size;
-					t0_ricecrc = t0->riceCrc;
-				}
+			if(m_triSel->tex_info[0]) {
+				const CachedTexture *t0 = m_triSel->tex_info[0]->texture;
+				t0_sS = m_triSel->tex_info[0]->scales * t0->scaleS;
+				t0_tS = m_triSel->tex_info[0]->scalet * t0->scaleT;
+				t0_offsetS = t0->offsetS;
+				t0_offsetT = t0->offsetT;
+				t0_sm = ((t0->clampS << 1) | t0->mirrorS) & 3;
+				t0_tm = ((t0->clampT << 1) | t0->mirrorT) & 3;
+				t0_wm = ((t0_sm << 2) | t0_tm) & 15;
+				t0_gcrc = t0->ripCrc;
 			}
 
-			if(tmpA0 == 2) {
-				if(m_triSel->tex_info[1]) {
+			// Zelda games multitexture (A0: TEXEL1)
+			if(A0val == 2) {
+				if(m_triSel->tex_info[0] && m_triSel->tex_info[1]) {
 					const CachedTexture *t1 = m_triSel->tex_info[1]->texture;
 					t1_sS = m_triSel->tex_info[1]->scales * t1->scaleS;
 					t1_tS = m_triSel->tex_info[1]->scalet * t1->scaleT;
 					t1_offsetS = t1->offsetS;
 					t1_offsetT = t1->offsetT;
-					t1_sM = ((t1->clampS << 1) | t1->mirrorS) & 3;
-					t1_tM = ((t1->clampT << 1) | t1->mirrorT) & 3;
-					t1_wM = ((t0_sM << 2) | t0_tM) & 15;
-					t1_format = t1->format;
-					t1_size = t1->size;
-					t1_ricecrc = t1->riceCrc;
+					t1_sm = ((t1->clampS << 1) | t1->mirrorS) & 3;
+					t1_tm = ((t1->clampT << 1) | t1->mirrorT) & 3;
+					t1_wm = ((t1_sm << 2) | t1_tm) & 15;
+					t1_gcrc = t1->ripCrc;
 				}
 			}
 
-			f32 v0_s0s = (v0.s0 * t0_sS) + t0_offsetS;
-			f32 v0_t0s = ((-v0.t0 * t0_tS) + 1.0f) + t0_offsetT;
-			f32 v0_s1s = (v0.s1 * t1_sS) + t1_offsetS;
-			f32 v0_t1s = ((-v0.t1 * t1_tS) + 1.0f) + t1_offsetT;
-
-			f32 v1_s0s = (v1.s0 * t0_sS) + t0_offsetS;
-			f32 v1_t0s = ((-v1.t0 * t0_tS) + 1.0f) + t0_offsetT;
-			f32 v1_s1s = (v1.s1 * t1_sS) + t1_offsetS;
-			f32 v1_t1s = ((-v1.t1 * t1_tS) + 1.0f) + t1_offsetT;
-
-			f32 v2_s0s = (v2.s0 * t0_sS) + t0_offsetS;
-			f32 v2_t0s = ((-v2.t0 * t0_tS) + 1.0f) + t0_offsetT;
-			f32 v2_s1s = (v2.s1 * t1_sS) + t1_offsetS;
-			f32 v2_t1s = ((-v2.t1 * t1_tS) + 1.0f) + t1_offsetT;
-
-			triangles[tri_counter].vertices[0].scene_x = v0.sx;
-			triangles[tri_counter].vertices[0].scene_y = v0.sy;
-			triangles[tri_counter].vertices[0].scene_z = v0.sz;
-			triangles[tri_counter].vertices[0].r = v0.r;
-			triangles[tri_counter].vertices[0].g = v0.g;
-			triangles[tri_counter].vertices[0].b = v0.b;
-			triangles[tri_counter].vertices[0].a = v0.a;
-			triangles[tri_counter].vertices[0].t0_s = v0_s0s;
-			triangles[tri_counter].vertices[0].t0_t = v0_t0s;
-			triangles[tri_counter].vertices[0].t1_s = v0_s1s;
-			triangles[tri_counter].vertices[0].t1_t = v0_t1s;
-
-			triangles[tri_counter].vertices[1].scene_x = v1.sx;
-			triangles[tri_counter].vertices[1].scene_y = v1.sy;
-			triangles[tri_counter].vertices[1].scene_z = v1.sz;
-			triangles[tri_counter].vertices[1].r = v1.r;
-			triangles[tri_counter].vertices[1].g = v1.g;
-			triangles[tri_counter].vertices[1].b = v1.b;
-			triangles[tri_counter].vertices[1].a = v1.a;
-			triangles[tri_counter].vertices[1].t0_s = v1_s0s;
-			triangles[tri_counter].vertices[1].t0_t = v1_t0s;
-			triangles[tri_counter].vertices[1].t1_s = v1_s1s;
-			triangles[tri_counter].vertices[1].t1_t = v1_t1s;
-
-			triangles[tri_counter].vertices[2].scene_x = v2.sx;
-			triangles[tri_counter].vertices[2].scene_y = v2.sy;
-			triangles[tri_counter].vertices[2].scene_z = v2.sz;
-			triangles[tri_counter].vertices[2].r = v2.r;
-			triangles[tri_counter].vertices[2].g = v2.g;
-			triangles[tri_counter].vertices[2].b = v2.b;
-			triangles[tri_counter].vertices[2].a = v2.a;
-			triangles[tri_counter].vertices[2].t0_s = v2_s0s;
-			triangles[tri_counter].vertices[2].t0_t = v2_t0s;
-			triangles[tri_counter].vertices[2].t1_s = v2_s1s;
-			triangles[tri_counter].vertices[2].t1_t = v2_t1s;
+			for(u32 j = 0; j < 3; ++j) {
+				triangles[tri_counter].vertices[j].scene_x = m_triSel->vertices[j].sx;
+				triangles[tri_counter].vertices[j].scene_y = m_triSel->vertices[j].sy;
+				triangles[tri_counter].vertices[j].scene_z =m_triSel->vertices[j].sz;
+				triangles[tri_counter].vertices[j].r = m_triSel->vertices[j].r;
+				triangles[tri_counter].vertices[j].g = m_triSel->vertices[j].g;
+				triangles[tri_counter].vertices[j].b = m_triSel->vertices[j].b;
+				triangles[tri_counter].vertices[j].a = m_triSel->vertices[j].a;
+				triangles[tri_counter].vertices[j].t0_s = (m_triSel->vertices[j].s0 * t0_sS) + t0_offsetS;
+				triangles[tri_counter].vertices[j].t0_t = ((-m_triSel->vertices[j].t0 * t0_tS) + 1.0f) + t0_offsetT;
+				triangles[tri_counter].vertices[j].t1_s = (m_triSel->vertices[j].s1 * t1_sS) + t1_offsetS;
+				triangles[tri_counter].vertices[j].t1_t = ((-m_triSel->vertices[j].t1 * t1_tS) + 1.0f) + t1_offsetT;
+			}
 
 			triangles[tri_counter].prim_r = m_triSel->prim_color.r;
 			triangles[tri_counter].prim_g = m_triSel->prim_color.g;
@@ -1641,16 +1569,11 @@ u32 Debugger::_performSceneRip()
 			triangles[tri_counter].blend_b = m_triSel->blend_color.b;
 			triangles[tri_counter].blend_a = m_triSel->blend_color.a;
 
-			triangles[tri_counter].t0_riceCrc = t0_ricecrc;
-			triangles[tri_counter].t1_riceCrc = t1_ricecrc;
+			triangles[tri_counter].t0_g64Crc = t0_gcrc;
+			triangles[tri_counter].t1_g64Crc = t1_gcrc;
 
-			triangles[tri_counter].t0_wrapmode = t0_wM;
-			triangles[tri_counter].t1_wrapmode = t1_wM;
-
-			triangles[tri_counter].t0_fmt = t0_format;
-			triangles[tri_counter].t0_size = t0_size;
-			triangles[tri_counter].t1_fmt = t1_format;
-			triangles[tri_counter].t1_size = t1_size;
+			triangles[tri_counter].t0_wrapmode = t0_wm;
+			triangles[tri_counter].t1_wrapmode = t1_wm;
 
 			++tri_counter;
 			++m_triSel;
@@ -1670,7 +1593,7 @@ u32 Debugger::_performSceneRip()
 			FILE *srCsvFile = nullptr;
 
 			wchar_t wCsvFile[MAX_PATH];
-			wcscpy(wCsvFile, wSrFile);
+			wcscpy(wCsvFile, wSrFile.c_str());
 			int curSrfpp = wcslen(wCsvFile);
 			curSrfpp -= 4;
 			wCsvFile[curSrfpp] = '\0';
@@ -1699,10 +1622,7 @@ u32 Debugger::_performSceneRip()
 				"env_r,env_g,env_b,env_a,"
 				"blend_r,blend_g,blend_b,blend_a,"
 				"t0_wrapmode,t1_wrapmode,"
-				"t0_fmt,t0_size,"
-				"t1_fmt,t1_size,"
-				"t0_riceCrc, t1_riceCrc,"
-				"t0_riceFilename, t1_riceFilename,"
+				"t0_G64Crc, t1_G64Crc,"
 				"fog_r,fog_g,fog_b\n";
 
 				if (!srCsvFile) {
@@ -1722,12 +1642,9 @@ u32 Debugger::_performSceneRip()
 
 					const u8 tmpt0wm = triangles[i].t0_wrapmode;
 					const u8 tmpt1wm = triangles[i].t1_wrapmode;
-					const u8 tmpt0fmt = triangles[i].t0_fmt;
-					const u8 tmpt0size = triangles[i].t0_size;
-					const u8 tmpt1fmt = triangles[i].t1_fmt;
-					const u8 tmpt1size = triangles[i].t1_size;
-					const u64 tmpt0rcrc = triangles[i].t0_riceCrc;
-					const u64 tmpt1rcrc = triangles[i].t1_riceCrc;
+
+					const u64 tmpt0gcrc = triangles[i].t0_g64Crc;
+					const u64 tmpt1gcrc = triangles[i].t1_g64Crc;
 
 					sprintf(t0_strWm, "%s (%hhu)", combined_wrapmode_type[tmpt0wm], tmpt0wm);
 					sprintf(t1_strWm, "%s (%hhu)", combined_wrapmode_type[tmpt1wm], tmpt1wm);
@@ -1737,16 +1654,16 @@ u32 Debugger::_performSceneRip()
 					wchar_t t0wcb[64];
 					wchar_t t1wcb[64];
 					
-					t0wsb.append(txfilter_getFormattedDmpTxFilename(t0wcb, N64FormatSize(tmpt0fmt, tmpt0size), tmpt0rcrc));
-					t1wsb.append(txfilter_getFormattedDmpTxFilename(t1wcb, N64FormatSize(tmpt1fmt, tmpt1size), tmpt1rcrc));
+					t0wsb.append(txfilter_getFormattedGCRCDmpTxFilename(t0wcb, tmpt0gcrc));
+					t1wsb.append(txfilter_getFormattedGCRCDmpTxFilename(t1wcb, tmpt1gcrc));
 
 					wcstombs(t0_combined_name, t0wsb.c_str(), 128);
 					wcstombs(t1_combined_name, t1wsb.c_str(), 128);
 
-					if(tmpt0rcrc == 0)
+					if(tmpt0gcrc == 0)
 						t0_combined_name[0] = '\0';
 
-					if(tmpt1rcrc == 0)
+					if(tmpt1gcrc == 0)
 						t1_combined_name[0] = '\0';
 
 					pCSVTriangles[i] = new char[1024];
@@ -1765,10 +1682,7 @@ u32 Debugger::_performSceneRip()
 					"%f,%f,%f,%f,"
 					"%f,%f,%f,%f,"
 					"%s,%s,"
-					"%hhu,%hhu,"
-					"%hhu,%hhu,"
-					"%llX,%llX,"
-					"%s,%s",
+					"%016lX,%016lX",
 					triangles[i].vertices[0].scene_x,
 					triangles[i].vertices[0].scene_y,
 					triangles[i].vertices[0].scene_z,
@@ -1816,14 +1730,8 @@ u32 Debugger::_performSceneRip()
 					triangles[i].blend_a,
 					t0_strWm,
 					t1_strWm,
-					tmpt0fmt,
-					tmpt0size,
-					tmpt1fmt,
-					tmpt1size,
-					tmpt0rcrc,
-					tmpt1rcrc,
-					t0_combined_name,
-					t1_combined_name);
+					tmpt0gcrc,
+					tmpt1gcrc);
 
 					const size_t currCSVRowLen = strlen(pCSVTriangles[i]);
 
@@ -1857,8 +1765,17 @@ u32 Debugger::_performSceneRip()
 			srFile = nullptr;
 		}
 
-		displayLoadProgress(L"Scene Dumped!\n");
-		std::this_thread::sleep_for(std::chrono::seconds(1));
+		if(!config.sceneRipper.continuous) {
+			dwnd().getDrawer().showMessage("Scene Ripped!\n", Milliseconds(750));
+		} else {
+			m_rippedFrames++;
+
+			if(config.sceneRipper.target != 0) {
+				if(m_rippedFrames == config.sceneRipper.target) {
+					resetContinuousRipMode();
+				}
+			}
+		}
 
 		return 1;
 	} else {
@@ -1869,9 +1786,10 @@ u32 Debugger::_performSceneRip()
 void Debugger::draw()
 {
 	if (m_triangles.empty()) {
-		_drawFrameBuffer(frameBufferList().getCurrent());
+		if(!m_bRip)
+			_drawFrameBuffer(frameBufferList().getCurrent());
 		dwnd().swapBuffers();
-	} else {
+	} else { 
 		_drawDebugInfo();
 	}
 
@@ -1882,12 +1800,30 @@ void Debugger::draw()
 	gDP.changed |= CHANGED_SCISSOR;
 }
 
+bool Debugger::canPerformSceneRip()
+{
+	return (config.sceneRipper.enableRipping &
+			textureCache().isDmpTxEnabled() &
+			config.textureFilter.txGenRip);
+}
+
 void Debugger::performSceneRip()
 {
-	textureCache().update(0);
-	textureCache().update(1);
-	currentCombiner()->update(true);
-	u32 result = _performSceneRip();
+	if(!canPerformSceneRip())
+		return;
+
+	if(!m_bCapture) {
+		m_bRip = true;
+		m_bDebugMode = true;
+		m_bCapture = true;
+	} else {
+		_performSceneRip();
+	}
+}
+
+void Debugger::resetContinuousRipMode() {
+	config.sceneRipper.continuous = 0;
+	m_rippedFrames = 0;
 }
 
 #else // DEBUG_DUMP
@@ -1898,6 +1834,8 @@ void Debugger::checkDebugState() {}
 void Debugger::addTriangles(const graphics::Context::DrawTriangleParameters &) {}
 void Debugger::addRects(const graphics::Context::DrawRectParameters &) {}
 void Debugger::draw() {}
+bool Debugger::canPerformSceneRip() { return false; }
 void Debugger::performSceneRip() {}
+void Debugger::resetContinuousRipMode() {}
 
 #endif // DEBUG_DUMP

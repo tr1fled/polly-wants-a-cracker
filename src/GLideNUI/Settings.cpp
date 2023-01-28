@@ -109,6 +109,7 @@ void _loadSettings(QSettings & settings)
 	config.textureFilter.txEnhancedTextureFileStorage = settings.value("txEnhancedTextureFileStorage", config.textureFilter.txEnhancedTextureFileStorage).toInt();
 	config.textureFilter.txHiresTextureFileStorage = settings.value("txHiresTextureFileStorage", config.textureFilter.txHiresTextureFileStorage).toInt();
 	config.textureFilter.txNoTextureFileStorage = settings.value("txNoTextureFileStorage", config.textureFilter.txNoTextureFileStorage).toInt();
+	config.textureFilter.txGenRip = settings.value("txGenRip", config.textureFilter.txGenRip).toInt();
 	config.textureFilter.txHiresVramLimit = settings.value("txHiresVramLimit", config.textureFilter.txHiresVramLimit).toInt();
 	QString txPath = QString::fromWCharArray(config.textureFilter.txPath);
 	config.textureFilter.txPath[settings.value("txPath", txPath).toString().toWCharArray(config.textureFilter.txPath)] = L'\0';
@@ -151,11 +152,10 @@ void _loadSettings(QSettings & settings)
 	settings.beginGroup("sceneRipper");
 	config.sceneRipper.enableRipping = settings.value("enableRipping", config.sceneRipper.enableRipping).toInt();
 	config.sceneRipper.entireScene = settings.value("entireScene", config.sceneRipper.entireScene).toInt();
-	config.sceneRipper.actorsOnly = settings.value("actorsOnly", config.sceneRipper.actorsOnly).toInt();
 	config.sceneRipper.sceneRipMode = settings.value("sceneRipMode", config.sceneRipper.sceneRipMode).toInt();
 	config.sceneRipper.CSVExport = settings.value("CSVExport", config.sceneRipper.CSVExport).toInt();
-	config.sceneRipper.continuous = 0;
-	config.sceneRipper.delay = settings.value("delay", config.sceneRipper.delay).toInt();
+	config.sceneRipper.continuous = settings.value("continuous", config.sceneRipper.continuous).toInt();
+	config.sceneRipper.target = settings.value("target", config.sceneRipper.target).toInt();
 	settings.endGroup();
 
 	settings.beginGroup("hotkeys");
@@ -268,6 +268,7 @@ void _writeSettingsToFile(const QString & filename)
 	settings.setValue("txEnhancedTextureFileStorage", config.textureFilter.txEnhancedTextureFileStorage);
 	settings.setValue("txHiresTextureFileStorage", config.textureFilter.txHiresTextureFileStorage);
 	settings.setValue("txNoTextureFileStorage", config.textureFilter.txNoTextureFileStorage);
+	settings.setValue("txGenRip", config.textureFilter.txGenRip);
 	settings.setValue("txHiresVramLimit", config.textureFilter.txHiresVramLimit);
 	settings.setValue("txPath", QString::fromWCharArray(config.textureFilter.txPath));
 	settings.setValue("txCachePath", QString::fromWCharArray(config.textureFilter.txCachePath));
@@ -298,10 +299,11 @@ void _writeSettingsToFile(const QString & filename)
 	settings.beginGroup("sceneRipper");
 	settings.setValue("enableRipping", config.sceneRipper.enableRipping);
 	settings.setValue("entireScene", config.sceneRipper.entireScene);
-	settings.setValue("actorsOnly", config.sceneRipper.actorsOnly);
 	settings.setValue("sceneRipMode", config.sceneRipper.sceneRipMode);
 	settings.setValue("CSVExport", config.sceneRipper.CSVExport);
-	settings.setValue("delay", config.sceneRipper.delay);
+	settings.setValue("continuous", config.sceneRipper.continuous);
+	settings.setValue("target", config.sceneRipper.target);
+	settings.endGroup();
 
 	settings.beginGroup("hotkeys");
 	for (u32 idx = 0; idx < Config::HotKey::hkTotal; ++idx) {
@@ -571,12 +573,11 @@ void saveCustomRomSettings(const QString & _strIniFolder, const char * _strRomNa
 	settings.beginGroup("sceneRipper");
 	WriteCustomSetting(sceneRipper, enableRipping);
 	WriteCustomSetting(sceneRipper, entireScene);
-	WriteCustomSetting(sceneRipper, actorsOnly);
 	WriteCustomSetting(sceneRipper, sceneRipMode);
 	WriteCustomSetting(sceneRipper, CSVExport);
-	WriteCustomSetting(sceneRipper, delay);
+	WriteCustomSetting(sceneRipper, continuous);
+	WriteCustomSetting(sceneRipper, target);
 	settings.endGroup();
-
 	settings.beginGroup("hotkeys");
 	for (u32 idx = 0; idx < Config::HotKey::hkTotal; ++idx) {
 		if (origConfig.hotkeys.keys[idx] != config.hotkeys.keys[idx] ||

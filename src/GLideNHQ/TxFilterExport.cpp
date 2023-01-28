@@ -85,19 +85,28 @@ txfilter_checksum(uint8 *src, int width, int height, int size, int rowStride, ui
 }
 
 TAPI wchar_t * TAPIENTRY
-txfilter_getFormattedDmpTxFilename(wchar_t *wbuf, N64FormatSize n64FmtSz, Checksum r_crc64)
+txfilter_getFormattedRCRCDmpTxFilename(wchar_t *wbuf, N64FormatSize n64FmtSz, Checksum r_crc64)
 {
   if (txFilter)
-  return txFilter->getFormattedDmpTxFilename(wbuf, n64FmtSz, r_crc64);
+  return txFilter->getFormattedRCRCDmpTxFilename(wbuf, n64FmtSz, r_crc64);
+
+  return nullptr;
+}
+
+TAPI wchar_t * TAPIENTRY
+txfilter_getFormattedGCRCDmpTxFilename(wchar_t *wbuf, Checksum g_crc64)
+{
+  if (txFilter)
+  return txFilter->getFormattedGCRCDmpTxFilename(wbuf, g_crc64);
 
   return nullptr;
 }
 
 TAPI boolean TAPIENTRY
-txfilter_dmptx(uint8 *src, int width, int height, int rowStridePixel, uint16 gfmt, N64FormatSize n64FmtSz, Checksum r_crc64)
+txfilter_dmptx(uint8 *src, int width, int height, int rowStridePixel, uint16 gfmt, N64FormatSize n64FmtSz, Checksum crc64)
 {
   if (txFilter)
-	return txFilter->dmptx(src, width, height, rowStridePixel, ColorFormat(u32(gfmt)), n64FmtSz, r_crc64);
+	return txFilter->dmptx(src, width, height, rowStridePixel, ColorFormat(u32(gfmt)), n64FmtSz, crc64);
 
   return 0;
 }

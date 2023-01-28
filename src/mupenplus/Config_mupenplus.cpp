@@ -25,6 +25,10 @@ const char* _hotkeyDescription(u32 _idx)
 	{
 	case Config::HotKey::hkTexDump:
 		return "Hotkey: toggle textures dump";
+#ifdef DEBUG_DUMP
+	case Config::HotKey::hkSceneRip:
+		return "Hotkey: perform scene rip";
+#endif
 	case Config::HotKey::hkHdTexReload:
 		return "Hotkey: reload HD textures";
 	case Config::HotKey::hkHdTexToggle:
@@ -263,6 +267,8 @@ bool Config_SetDefault()
 	assert(res == M64ERR_SUCCESS);
 	res = ConfigSetDefaultBool(g_configVideoGliden64, "txNoTextureFileStorage", config.textureFilter.txNoTextureFileStorage, "Use no file storage or cache for HD textures.");
 	assert(res == M64ERR_SUCCESS);
+	res = ConfigSetDefaultBool(g_configVideoGliden64, "txGenRip", config.textureFilter.txGenRip, "Generate scene rip textures while dumping textures.");
+	assert(res == M64ERR_SUCCESS);
 	res = ConfigSetDefaultInt(g_configVideoGliden64, "txHiresVramLimit", config.textureFilter.txHiresVramLimit, "Limit hi-res textures size in VRAM (in MB, 0 = no limit)");
 	assert(res == M64ERR_SUCCESS);
 	// Convert to multibyte
@@ -479,6 +485,8 @@ void Config_LoadCustomConfig()
 	if (result == M64ERR_SUCCESS) config.textureFilter.txHiresTextureFileStorage = atoi(value);
 	result = ConfigExternalGetParameter(fileHandle, sectionName, "textureFilter\\txNoTextureFileStorage", value, sizeof(value));
 	if (result == M64ERR_SUCCESS) config.textureFilter.txNoTextureFileStorage = atoi(value);
+	result = ConfigExternalGetParameter(fileHandle, sectionName, "textureFilter\\txGenRip", value, sizeof(value));
+	if (result == M64ERR_SUCCESS) config.textureFilter.txGenRip = atoi(value);
 	result = ConfigExternalGetParameter(fileHandle, sectionName, "textureFilter\\txHiresVramLimit", value, sizeof(value));
 	if (result == M64ERR_SUCCESS) config.textureFilter.txHiresVramLimit = atoi(value);
 	ConfigExternalClose(fileHandle);
@@ -495,7 +503,7 @@ void Config_LoadConfig()
 	config.video.verticalSync = ConfigGetParamBool(g_configVideoGeneral, "VerticalSync");
 	config.video.threadedVideo = ConfigGetParamBool(g_configVideoGliden64, "ThreadedVideo");
 	const u32 multisampling = ConfigGetParamInt(g_configVideoGliden64, "MultiSampling");
-	config.video.multisampling = multisampling == 0 ? 0 : pow2(multisampling);
+	config.video.multisampling = multisampling == 0 ? 0 : pow2_config(multisampling);
 	config.video.fxaa = ConfigGetParamBool(g_configVideoGliden64, "FXAA");
 	if (config.video.fxaa != 0)
 		config.video.multisampling = 0;
@@ -572,6 +580,7 @@ void Config_LoadConfig()
 	config.textureFilter.txEnhancedTextureFileStorage = ConfigGetParamBool(g_configVideoGliden64, "txEnhancedTextureFileStorage");
 	config.textureFilter.txHiresTextureFileStorage = ConfigGetParamBool(g_configVideoGliden64, "txHiresTextureFileStorage");
 	config.textureFilter.txNoTextureFileStorage = ConfigGetParamBool(g_configVideoGliden64, "txNoTextureFileStorage");
+	config.textureFilter.txGenRip = ConfigGetParamBool(g_configVideoGliden64, "txGenRip");
 	config.textureFilter.txHiresVramLimit = ConfigGetParamInt(g_configVideoGliden64, "txHiresVramLimit");
 	::mbstowcs(config.textureFilter.txPath, ConfigGetParamString(g_configVideoGliden64, "txPath"), PLUGIN_PATH_SIZE);
 	::mbstowcs(config.textureFilter.txCachePath, ConfigGetParamString(g_configVideoGliden64, "txCachePath"), PLUGIN_PATH_SIZE);

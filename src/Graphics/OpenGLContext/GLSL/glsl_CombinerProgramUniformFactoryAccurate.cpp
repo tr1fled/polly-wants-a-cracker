@@ -294,7 +294,7 @@ public:
 				aTexClampEn[t][1] = 1.0;
 				aTexMirrorEn[t][0] = 0.0;
 				aTexMirrorEn[t][1] = 0.0;
-			} else if (pTile->textureMode != TEXTUREMODE_NORMAL || g_debugger.isDebugMode()) {
+			} else if (pTile->textureMode != TEXTUREMODE_NORMAL || (g_debugger.isDebugMode() && !g_debugger.isRipMode())) {
 				aTexWrapEn[t][0] = 0.0;
 				aTexWrapEn[t][1] = 0.0;
 				aTexClampEn[t][0] = 0.0;

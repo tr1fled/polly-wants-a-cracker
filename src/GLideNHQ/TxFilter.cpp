@@ -31,6 +31,7 @@
 #include <assert.h>
 
 #include <osal_files.h>
+#include "Config.h"
 #include "TxFilter.h"
 #include "TextureFilters.h"
 #include "TxDbg.h"
@@ -581,7 +582,7 @@ TxFilter::checksum64(uint8 *src, int width, int height, int size, int rowStride,
 }
 
 wchar_t *
-TxFilter::getFormattedDmpTxFilename(wchar_t *wbuf, N64FormatSize n64FmtSz, Checksum r_crc64)
+TxFilter::getFormattedRCRCDmpTxFilename(wchar_t *wbuf, N64FormatSize n64FmtSz, Checksum r_crc64)
 {
 	if (n64FmtSz._format == 0x2) {
 			tx_swprintf(wbuf, 256, wst("%ls#%08X#%01X#%01X#%08X_ciByRGBA.png"), _ident.c_str(), r_crc64._texture, n64FmtSz._format, n64FmtSz._size, r_crc64._palette);
@@ -591,8 +592,15 @@ TxFilter::getFormattedDmpTxFilename(wchar_t *wbuf, N64FormatSize n64FmtSz, Check
 	return wbuf;
 }
 
+wchar_t *
+TxFilter::getFormattedGCRCDmpTxFilename(wchar_t *wbuf, Checksum g_crc64)
+{
+	tx_swprintf(wbuf, 256, wst("%016lX.png"), g_crc64);
+	return wbuf;
+}
+
 boolean
-TxFilter::dmptx(uint8 *src, int width, int height, int rowStridePixel, ColorFormat gfmt, N64FormatSize n64FmtSz, Checksum r_crc64)
+TxFilter::dmptx(uint8 *src, int width, int height, int rowStridePixel, ColorFormat gfmt, N64FormatSize n64FmtSz, Checksum crc64)
 {
 	assert(gfmt != graphics::colorFormat::RGBA);
 	if (!_initialized)
@@ -602,8 +610,8 @@ TxFilter::dmptx(uint8 *src, int width, int height, int rowStridePixel, ColorForm
 		return 0;
 
 	DBG_INFO(80, wst("gfmt = %02x n64fmt = %02x\n"), u32(gfmt), n64FmtSz._format);
-	DBG_INFO(80, wst("hirestex: r_crc64:%08X %08X\n"),
-			 r_crc64._palette, r_crc64._texture);
+	DBG_INFO(80, wst("hirestex: crc64:%08X %08X\n"),
+			 crc64._palette, crc64._texture);
 
 	if (gfmt != graphics::internalcolorFormat::RGBA8) {
 		if (!_txQuantize->quantize(src, _tex1, rowStridePixel, height, gfmt, graphics::internalcolorFormat::RGBA8))
@@ -615,18 +623,28 @@ TxFilter::dmptx(uint8 *src, int width, int height, int rowStridePixel, ColorForm
 		/* dump it to disk */
 		FILE *fp = nullptr;
 		tx_wstring tmpbuf;
+		tx_wstring tmpident = _ident;
 
 		/* create directories */
 		tmpbuf.assign(_dumpPath);
 		tmpbuf.append(wst("/"));
-		tmpbuf.append(_ident);
+		tmpbuf.append(tmpident);
 		tmpbuf.append(wst("/GLideNHQ"));
 		if (!osal_path_existsW(tmpbuf.c_str()) && osal_mkdirp(tmpbuf.c_str()) != 0)
 			return 0;
 
 		wchar_t wbuf[256];
 		tmpbuf.append(wst("/"));
-		tmpbuf.append(getFormattedDmpTxFilename(wbuf, n64FmtSz, r_crc64));
+		
+		if(!config.textureFilter.txGenRip) {
+			tmpbuf.append(getFormattedRCRCDmpTxFilename(wbuf, n64FmtSz, crc64));		
+		} else {
+			tmpbuf.append(wst("scene_rips"));
+			if (!osal_path_existsW(tmpbuf.c_str()) && osal_mkdirp(tmpbuf.c_str()) != 0)
+				return 0;
+			tmpbuf.append(wst("/"));
+			tmpbuf.append(getFormattedGCRCDmpTxFilename(wbuf, crc64));
+		}
 
 #ifdef OS_WINDOWS
 		if ((fp = _wfopen(tmpbuf.c_str(), wst("wb"))) != nullptr) {

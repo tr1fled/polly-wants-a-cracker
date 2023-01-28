@@ -1,6 +1,8 @@
 #ifndef TEXTURES_H
 #define TEXTURES_H
 
+#define XXH_INLINE_ALL
+
 #include <array>
 #include <list>
 #include <map>
@@ -12,6 +14,7 @@
 #include "convert.h"
 #include "Graphics/ObjectHandle.h"
 #include "Graphics/Parameter.h"
+#include "xxHash/xxhash.h"
 
 typedef u32 (*GetTexelFunc)(u16 offset, u16 x, u16 i, u8 palette);
 typedef u32 (*GetTexelFuncBG)(u64 *src, u16 x, u16 i, u8 palette);
@@ -23,7 +26,9 @@ struct CachedTexture
 
 	graphics::ObjectHandle name;
 	u64		crc = 0;
-	u64		riceCrc = 0;
+#ifdef DEBUG_DUMP
+	u64		ripCrc = 0;
+#endif
 //	float	fulS, fulT;
 //	WORD	ulS, ulT, lrS, lrT;
 	float	offsetS, offsetT;
@@ -67,7 +72,7 @@ struct TextureCache
 	void activateDummy(u32 _t);
 	void activateMSDummy(u32 _t);
 	void update(u32 _t);
-	bool getDmpTxStatus();
+	bool isDmpTxEnabled();
 	void toggleDumpTex();
 
 	static TextureCache & get();

@@ -1591,8 +1591,8 @@ void GraphicsDrawer::drawOSD()
 		config.onScreenDisplay.percent |
 		config.onScreenDisplay.internalResolution |
 		config.onScreenDisplay.renderingResolution |
-		config.onScreenDisplay.statistics
-		) == 0 &&
+		config.onScreenDisplay.statistics |
+		config.sceneRipper.continuous) == 0 &&
 		m_osdMessages.empty())
 		return;
 
@@ -1667,6 +1667,16 @@ void GraphicsDrawer::drawOSD()
 		_drawOSD(buf, x, y);
 	}
 
+#ifdef DEBUG_DUMP
+	if(g_debugger.canPerformSceneRip() && config.sceneRipper.continuous != 0 ) {
+		if(config.sceneRipper.target == 0) {
+			sprintf(buf, "Ripped %d", g_debugger.getRippedFrames());
+		} else {
+			sprintf(buf, "Ripped %d / %d", g_debugger.getRippedFrames(), config.sceneRipper.target);
+		}
+		_drawOSD(buf, x, y);
+	}
+#endif
 
 	for (const std::string & m : m_osdMessages) {
 		_drawOSD(m.c_str(), x, y);
@@ -1707,8 +1717,11 @@ void GraphicsDrawer::clearColorBuffer(float *_pColor)
 bool GraphicsDrawer::isClipped(u32 _v0, u32 _v1, u32 _v2) const
 {
 #ifdef DEBUG_DUMP
-	if(g_debugger.isDebugMode() && config.sceneRipper.enableRipping && config.sceneRipper.entireScene)
-		return false;
+	if(g_debugger.canPerformSceneRip()) {
+		if(config.sceneRipper.entireScene != 0) {
+			return false;
+		}
+	}
 #endif
 
 	if ((triangles.vertices[_v0].clip & triangles.vertices[_v1].clip & triangles.vertices[_v2].clip) != 0) {

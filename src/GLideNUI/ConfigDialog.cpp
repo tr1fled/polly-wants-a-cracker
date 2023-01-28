@@ -14,6 +14,7 @@
 
 #include "../Config.h"
 #include "../DebugDump.h"
+#include "../Debugger.h"
 #include "ui_configDialog.h"
 #include "Settings.h"
 #include "ConfigDialog.h"
@@ -46,7 +47,7 @@ static
 const unsigned int numWindowedModes = sizeof(WindowedModes) / sizeof(WindowedModes[0]);
 
 static
-u32 pow2(u32 dim)
+u32 pow2_config(u32 dim)
 {
 	if (dim == 0)
 		return 0;
@@ -55,7 +56,7 @@ u32 pow2(u32 dim)
 }
 
 static
-u32 powof(u32 dim)
+u32 powof_config(u32 dim)
 {
 	if (dim == 0)
 		return 0;
@@ -77,6 +78,10 @@ QString ConfigDialog::_hotkeyDescription(quint32 _idx) const
 	{
 	case Config::HotKey::hkTexDump:
 		return tr("Toggle textures dump");
+#ifdef DEBUG_DUMP
+	case Config::HotKey::hkSceneRip:
+		return tr("Perform scene rip");
+#endif
 	case Config::HotKey::hkHdTexReload:
 		return tr("Reload HD textures");
 	case Config::HotKey::hkHdTexToggle:
@@ -232,8 +237,8 @@ void ConfigDialog::_init(bool reInit, bool blockCustomSettings)
 	const unsigned int anisotropy = std::min(config.texture.anisotropy, m_maxAnisotropy);
 
 	ui->aliasingSlider->blockSignals(true);
-	ui->aliasingSlider->setMaximum(powof(m_maxMSAA));
-	ui->aliasingSlider->setValue(powof(multisampling));
+	ui->aliasingSlider->setMaximum(powof_config(m_maxMSAA));
+	ui->aliasingSlider->setValue(powof_config(multisampling));
 	ui->aliasingSlider->blockSignals(false);
 	ui->aliasingLabelVal->setText(QString::number(multisampling));
 	ui->anisotropicSlider->setMaximum(m_maxAnisotropy);
@@ -375,8 +380,8 @@ void ConfigDialog::_init(bool reInit, bool blockCustomSettings)
 	ui->saveTextureCacheCheckBox->setChecked(config.textureFilter.txSaveCache != 0);
 	ui->enhancedTexFileStorageCheckBox->setChecked(config.textureFilter.txEnhancedTextureFileStorage != 0);
 	ui->hiresTexFileStorageCheckBox->setChecked(config.textureFilter.txHiresTextureFileStorage != 0);
-	ui->noTexFileStorageCheckBox->setChecked(config.textureFilter.txNoTextureFileStorage != 0);
-
+	ui->noTexFileStorageCheckBox->setChecked(config.textureFilter.txNoTextureFileStorage != 0);	
+	ui->txGenRipCheckBox->setChecked(config.textureFilter.txGenRip != 0);
 	ui->texPackPathLineEdit->setText(QString::fromWCharArray(config.textureFilter.txPath));
 	ui->texCachePathLineEdit->setText(QString::fromWCharArray(config.textureFilter.txCachePath));
 	ui->texDumpPathLineEdit->setText(QString::fromWCharArray(config.textureFilter.txDumpPath));
@@ -432,11 +437,10 @@ void ConfigDialog::_init(bool reInit, bool blockCustomSettings)
 	// Scene ripper settings
 	ui->ripperGroupBox->setChecked(config.sceneRipper.enableRipping != 0);
 	ui->ripperEntireSceneCheckBox->setChecked(config.sceneRipper.entireScene != 0);
-	ui->ripperActorsOnlyCheckBox->setChecked(config.sceneRipper.actorsOnly != 0);
 	ui->ripperRipmodeComboBox->setCurrentIndex(config.sceneRipper.sceneRipMode);
 	ui->ripperCSVExportCheckBox->setChecked(config.sceneRipper.CSVExport != 0);
-	ui->ripperContinuousCheckBox->setChecked(false); // TODO: Implement continuous ripping mode
-	ui->ripperSpinBox->setValue(config.sceneRipper.delay != 0 ? config.sceneRipper.delay : 30);
+	ui->ripperContinuousCheckBox->setChecked(config.sceneRipper.continuous != 0);
+	ui->ripperTargetSpinBox->setValue(config.sceneRipper.target >= 0 ? config.sceneRipper.target : 30);
 
 	// Buttons
 	ui->buttonBox->button(QDialogButtonBox::Ok)->setText(tr("Save and Close"));
@@ -444,7 +448,7 @@ void ConfigDialog::_init(bool reInit, bool blockCustomSettings)
 	ui->buttonBox->button(QDialogButtonBox::Close)->setText(tr("Close"));
 	ui->buttonBox->button(QDialogButtonBox::RestoreDefaults)->setText(tr("Restore Defaults"));
 
-// Debug settings
+	// Debug settings
 	ui->dumpLowCheckBox->setChecked((config.debug.dumpMode & DEBUG_LOW) != 0);
 	ui->dumpNormalCheckBox->setChecked((config.debug.dumpMode & DEBUG_NORMAL) != 0);
 	ui->dumpDetailCheckBox->setChecked((config.debug.dumpMode & DEBUG_DETAIL) != 0);
@@ -477,6 +481,7 @@ void ConfigDialog::_init(bool reInit, bool blockCustomSettings)
 	}
 
 #ifndef DEBUG_DUMP
+	ui->txGenRipCheckBox->setVisible(false);
 	for (int i = 0; i < ui->tabWidget->count(); ++i) {
 		if (tr("Debug") == ui->tabWidget->tabText(i) ||
 			tr("Scene Ripping") == ui->tabWidget->tabText(i)) {
@@ -589,7 +594,7 @@ void ConfigDialog::accept(bool justSave) {
 			|| ui->n64DepthCompareComboBox->currentIndex() != 0
 			|| ui->noaaRadioButton->isChecked()
 		) ? 0
-		: pow2(ui->aliasingSlider->value());
+		: pow2_config(ui->aliasingSlider->value());
 	config.texture.anisotropy = ui->anisotropicSlider->value();
 
 	if (ui->blnrStandardRadioButton->isChecked())
@@ -701,6 +706,7 @@ void ConfigDialog::accept(bool justSave) {
 	config.textureFilter.txEnhancedTextureFileStorage = ui->enhancedTexFileStorageCheckBox->isChecked() ? 1 : 0;
 	config.textureFilter.txHiresTextureFileStorage = ui->hiresTexFileStorageCheckBox->isChecked() ? 1 : 0;
 	config.textureFilter.txNoTextureFileStorage = ui->noTexFileStorageCheckBox->isChecked() ? 1 : 0;
+	config.textureFilter.txGenRip = ui->txGenRipCheckBox->isChecked() ? 1 : 0;
 
 	QDir txPath(ui->texPackPathLineEdit->text());
 	if (!txPath.exists() &&
@@ -793,11 +799,10 @@ void ConfigDialog::accept(bool justSave) {
 	// Scene Ripping settings
 	config.sceneRipper.enableRipping = ui->ripperGroupBox->isChecked() ? 1 : 0;
 	config.sceneRipper.entireScene = ui->ripperEntireSceneCheckBox->isChecked() ? 1 : 0;
-	config.sceneRipper.actorsOnly = ui->ripperActorsOnlyCheckBox->isChecked() ? 1 : 0;
 	config.sceneRipper.sceneRipMode = ui->ripperRipmodeComboBox->currentIndex();
 	config.sceneRipper.CSVExport = ui->ripperCSVExportCheckBox->isChecked() ? 1 : 0;
 	config.sceneRipper.continuous = ui->ripperContinuousCheckBox->isChecked() ? 1 : 0;
-	config.sceneRipper.delay = ui->ripperSpinBox->value();
+	config.sceneRipper.target = ui->ripperTargetSpinBox->value();
 
 	for (quint32 idx = 0; idx < Config::HotKey::hkTotal; ++idx) {
 		config.hotkeys.keys[idx] = config.hotkeys.enabledKeys[idx] = 0;
@@ -846,7 +851,7 @@ void ConfigDialog::on_PickFontColorButton_clicked()
 
 void ConfigDialog::on_aliasingSlider_valueChanged(int value)
 {
-	ui->aliasingLabelVal->setText(QString::number(pow2(value)));
+	ui->aliasingLabelVal->setText(QString::number(pow2_config(value)));
 	if (value != 0) {
 		ui->msaaRadioButton->setChecked(true);
 	} else {
@@ -925,6 +930,37 @@ void ConfigDialog::on_texDumpPathButton_clicked()
 void ConfigDialog::on_noTexFileStorageCheckBox_toggled(bool checked)
 {
 	ui->hiresTexFileStorageCheckBox->setEnabled(!checked);
+}
+	
+void ConfigDialog::on_txGenRipCheckBox_toggled(bool checked)
+{
+	ui->filterComboBox->setCurrentIndex(0);
+	ui->enhancementComboBox->setCurrentIndex(0);
+	ui->deposterizeCheckBox->setChecked(false);
+	ui->ignoreBackgroundsCheckBox->setChecked(false);
+	ui->enhancedTexFileStorageCheckBox->setChecked(false);
+	ui->alphaChannelCheckBox->setChecked(false);
+	ui->alternativeCRCCheckBox->setChecked(false);
+	ui->hiresTexFileStorageCheckBox->setChecked(false);
+	ui->noTexFileStorageCheckBox->setChecked(false);
+	ui->saveTextureCacheCheckBox->setChecked(false);
+	ui->compressCacheCheckBox->setChecked(false);
+	ui->force16bppCheckBox->setChecked(false);
+	ui->frameBufferCheckBox->setChecked(true);
+
+	ui->filterComboBox->setEnabled(!checked);
+	ui->enhancementComboBox->setEnabled(!checked);
+	ui->deposterizeCheckBox->setEnabled(!checked);
+	ui->ignoreBackgroundsCheckBox->setEnabled(!checked);
+	ui->enhancedTexFileStorageCheckBox->setEnabled(!checked);
+	ui->alphaChannelCheckBox->setEnabled(!checked);
+	ui->alternativeCRCCheckBox->setEnabled(!checked);
+	ui->hiresTexFileStorageCheckBox->setEnabled(!checked);
+	ui->noTexFileStorageCheckBox->setEnabled(!checked);
+	ui->saveTextureCacheCheckBox->setEnabled(!checked);
+	ui->compressCacheCheckBox->setEnabled(!checked);
+	ui->force16bppCheckBox->setEnabled(!checked);
+	ui->frameBufferCheckBox->setEnabled(!checked);
 }
 
 void ConfigDialog::on_windowedResolutionComboBox_currentIndexChanged(int index)
@@ -1034,6 +1070,13 @@ void ConfigDialog::on_ripperGroupBox_toggled(bool checked)
 {
 	if(!checked)
 		ui->ripperContinuousCheckBox->setChecked(false);
+}
+
+void ConfigDialog::on_ripperContinuousCheckBox_toggled(bool checked)
+{
+	g_debugger.resetContinuousRipMode();
+	ui->ripperTargetLabel->setEnabled(checked);
+	ui->ripperTargetSpinBox->setEnabled(checked);
 }
 
 void ConfigDialog::on_tabWidget_currentChanged(int tab)

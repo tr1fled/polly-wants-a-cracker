@@ -695,6 +695,9 @@ void TextureCache::_initDummyTexture(CachedTexture * _pDummy)
 	_pDummy->clampWidth = 2;
 	_pDummy->clampHeight = 2;
 	_pDummy->crc = 0;
+#ifdef DEBUG_DUMP
+	_pDummy->ripCrc = 0;
+#endif
 	_pDummy->format = 0;
 	_pDummy->size = 0;
 	_pDummy->frameBufferTexture = CachedTexture::fbNone;
@@ -1090,14 +1093,29 @@ void TextureCache::_loadBackground(CachedTexture *pTexture)
 		return;
 	}
 
+#ifdef DEBUG_DUMP
+	pTexture->ripCrc = XXH3_64bits((u8*)pDest, pTexture->textureBytes);
+#endif
+
 	if ((m_toggleDumpTex &&
 		config.textureFilter.txHiresEnable != 0 &&
 		config.hotkeys.enabledKeys[Config::HotKey::hkTexDump] != 0) ||
 		config.textureFilter.txDump) {
-			txfilter_dmptx((u8*)pDest, pTexture->width, pTexture->height,
-				pTexture->width, (u16)u32(glInternalFormat),
-				N64FormatSize(pTexture->format, pTexture->size),
-				ricecrc);
+#ifdef DEBUG_DUMP
+			if(config.textureFilter.txGenRip == 0) {
+#endif
+				txfilter_dmptx((u8*)pDest, pTexture->width, pTexture->height,
+					pTexture->width, (u16)u32(glInternalFormat),
+					N64FormatSize(pTexture->format, pTexture->size),
+					ricecrc);
+#ifdef DEBUG_DUMP			
+			} else {
+				txfilter_dmptx((u8*)pDest, pTexture->width, pTexture->height,
+					pTexture->width, (u16)u32(glInternalFormat),
+					N64FormatSize(pTexture->format, pTexture->size),
+					pTexture->ripCrc);
+			}
+#endif
 	}
 
 	bool bLoaded = false;
@@ -1485,15 +1503,28 @@ void TextureCache::_loadFast(u32 _tile, CachedTexture *_pTexture)
 			_loadDepthTexture(_pTexture, (u16*)m_tempTextureHolder.data());
 			return;
 		}
-
+#ifdef DEBUG_DUMP
+		_pTexture->ripCrc = XXH3_64bits((u8*)m_tempTextureHolder.data(), _pTexture->textureBytes);
+#endif
 		if ((m_toggleDumpTex &&
 			config.textureFilter.txHiresEnable != 0 &&
 			config.hotkeys.enabledKeys[Config::HotKey::hkTexDump] != 0) ||
 			config.textureFilter.txDump) {
-				txfilter_dmptx((u8*)m_tempTextureHolder.data(), tmptex.width, tmptex.height,
-					tmptex.width, (u16)u32(glInternalFormat),
-					N64FormatSize(_pTexture->format, _pTexture->size),
-					ricecrc);
+#ifdef DEBUG_DUMP
+				if(config.textureFilter.txGenRip == 0) {
+#endif
+					txfilter_dmptx((u8*)m_tempTextureHolder.data(), tmptex.width, tmptex.height,
+						tmptex.width, (u16)u32(glInternalFormat),
+						N64FormatSize(_pTexture->format, _pTexture->size),
+						ricecrc);
+#ifdef DEBUG_DUMP
+				} else {
+					txfilter_dmptx((u8*)m_tempTextureHolder.data(), tmptex.width, tmptex.height,
+						tmptex.width, (u16)u32(glInternalFormat),
+						N64FormatSize(_pTexture->format, _pTexture->size),
+						_pTexture->ripCrc);
+				}
+#endif
 		}
 
 		bool bLoaded = false;
@@ -1595,7 +1626,6 @@ void TextureCache::_loadAccurate(u32 _tile, CachedTexture *_pTexture)
 		return;
 
 	bool force32bitFormat = false;
-	_pTexture->riceCrc = ricecrc;
 	_pTexture->max_level = 0;
 
 	if (currentCombiner()->usesLOD() && gSP.texture.level > 1 && _tile > 0) {
@@ -1662,15 +1692,28 @@ void TextureCache::_loadAccurate(u32 _tile, CachedTexture *_pTexture)
 
 			getLoadParams(tmptex.format, tmptex.size);
 			_getTextureDestData(tmptex, &m_tempTextureHolder[texDataOffset], glInternalFormat, GetTexel, &line);
-
+#ifdef DEBUG_DUMP
+			_pTexture->ripCrc = XXH3_64bits((u8*)(m_tempTextureHolder.data() + texDataOffset), _pTexture->textureBytes);
+#endif
 			if ((m_toggleDumpTex &&
 				config.textureFilter.txHiresEnable != 0 &&
 				config.hotkeys.enabledKeys[Config::HotKey::hkTexDump] != 0) ||
 				config.textureFilter.txDump) {
-				txfilter_dmptx((u8*)(m_tempTextureHolder.data() + texDataOffset), tmptex.width, tmptex.height,
-					tmptex.width, (u16)u32(glInternalFormat),
-					N64FormatSize(_pTexture->format, _pTexture->size),
-					ricecrc);
+#ifdef DEBUG_DUMP					
+				if(config.textureFilter.txGenRip == 0) {
+#endif
+					txfilter_dmptx((u8*)(m_tempTextureHolder.data() + texDataOffset), tmptex.width, tmptex.height,
+						tmptex.width, (u16)u32(glInternalFormat),
+						N64FormatSize(_pTexture->format, _pTexture->size),
+						ricecrc);
+#ifdef DEBUG_DUMP						
+				} else {
+					txfilter_dmptx((u8*)(m_tempTextureHolder.data() + texDataOffset), tmptex.width, tmptex.height,
+						tmptex.width, (u16)u32(glInternalFormat),
+						N64FormatSize(_pTexture->format, _pTexture->size),
+						_pTexture->ripCrc);
+				}
+#endif
 			}
 
 			texDataOffset += tmptex.width * tmptex.height;
@@ -1721,15 +1764,28 @@ void TextureCache::_loadAccurate(u32 _tile, CachedTexture *_pTexture)
 			_loadDepthTexture(_pTexture, (u16*)m_tempTextureHolder.data());
 			return;
 		}
-
+#ifdef DEBUG_DUMP
+		_pTexture->ripCrc = XXH3_64bits((u8*)m_tempTextureHolder.data(), _pTexture->textureBytes);
+#endif
 		if ((m_toggleDumpTex &&
 			config.textureFilter.txHiresEnable != 0 &&
 			config.hotkeys.enabledKeys[Config::HotKey::hkTexDump] != 0) ||
 			config.textureFilter.txDump) {
-				txfilter_dmptx((u8*)m_tempTextureHolder.data(), tmptex.width, tmptex.height,
-					tmptex.width, (u16)u32(glInternalFormat),
-					N64FormatSize(_pTexture->format, _pTexture->size),
-					ricecrc);
+#ifdef DEBUG_DUMP				
+				if(config.textureFilter.txGenRip == 0) {
+#endif
+					txfilter_dmptx((u8*)m_tempTextureHolder.data(), tmptex.width, tmptex.height,
+						tmptex.width, (u16)u32(glInternalFormat),
+						N64FormatSize(_pTexture->format, _pTexture->size),
+						ricecrc);
+#ifdef DEBUG_DUMP						
+				} else {
+					txfilter_dmptx((u8*)m_tempTextureHolder.data(), tmptex.width, tmptex.height,
+						tmptex.width, (u16)u32(glInternalFormat),
+						N64FormatSize(_pTexture->format, _pTexture->size),
+						_pTexture->ripCrc);
+				}
+#endif
 		}
 
 		bool bLoaded = false;
@@ -2035,7 +2091,7 @@ void TextureCache::toggleDumpTex()
 	}
 }
 
-bool TextureCache::getDmpTxStatus()
+bool TextureCache::isDmpTxEnabled()
 {
 	return m_toggleDumpTex;
 }

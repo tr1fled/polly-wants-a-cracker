@@ -107,6 +107,7 @@ void Config::resetToDefaults()
 	textureFilter.txEnhancedTextureFileStorage = 0;
 	textureFilter.txHiresTextureFileStorage = 0;
 	textureFilter.txNoTextureFileStorage = 0;
+	textureFilter.txGenRip = 0;
 
 	textureFilter.txHiresVramLimit = 0u;
 
@@ -147,11 +148,10 @@ void Config::resetToDefaults()
 
 	sceneRipper.enableRipping = 0;
 	sceneRipper.entireScene = 1;
-	sceneRipper.actorsOnly = 0;
 	sceneRipper.sceneRipMode = 0;
 	sceneRipper.CSVExport = 0;
 	sceneRipper.continuous = 0;
-	sceneRipper.delay = 30;
+	sceneRipper.target = 30;
 
 	for (u32 idx = 0; idx < HotKey::hkTotal; ++idx) {
 		hotkeys.enabledKeys[idx] = 0;
@@ -187,6 +187,10 @@ const char* Config::hotkeyIniName(u32 _idx)
 	{
 	case Config::HotKey::hkTexDump:
 		return "hkTexDump";
+#ifdef DEBUG_DUMP
+	case Config::HotKey::hkSceneRip:
+		return "hkSceneRip";
+#endif
 	case Config::HotKey::hkHdTexReload:
 		return "hkHdTexReload";
 	case Config::HotKey::hkHdTexToggle:
@@ -225,6 +229,10 @@ const char* Config::enabledHotkeyIniName(u32 _idx)
 	{
 	case Config::HotKey::hkTexDump:
 		return "hkTexDumpEnabled";
+#ifdef DEBUG_DUMP
+	case Config::HotKey::hkSceneRip:
+		return "hkSceneRipEnabled";
+#endif
 	case Config::HotKey::hkHdTexReload:
 		return "hkHdTexReloadEnabled";
 	case Config::HotKey::hkHdTexToggle:

@@ -180,6 +180,7 @@ struct Config
 		u32 txEnhancedTextureFileStorage;	// Use file storage instead of memory cache for enhanced textures.
 		u32 txHiresTextureFileStorage;		// Use file storage instead of memory cache for hires textures.
 		u32 txNoTextureFileStorage;			// Use no file storage or cache for hires textures.
+		u32 txGenRip;						// Setup options for scene ripping (DEBUG_DUMP only)
 
 		u32 txHiresVramLimit; // Limit of uploading hi-res textures to VRAM (in MB)
 
@@ -224,6 +225,9 @@ struct Config
 
 	enum HotKey {
 		hkTexDump = 0,
+#ifdef DEBUG_DUMP
+		hkSceneRip,
+#endif
 		hkHdTexReload,
 		hkHdTexToggle,
 		hkTexCoordBounds,
@@ -249,11 +253,10 @@ struct Config
 	struct {
 		u32 enableRipping;
 		u32 entireScene;
-		u32 actorsOnly;
 		u32 sceneRipMode;
 		u32 CSVExport;
 		u32 continuous;
-		u32 delay;
+		u32 target;
 	} sceneRipper;
 
 	struct {

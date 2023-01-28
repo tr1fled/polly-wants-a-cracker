@@ -161,19 +161,7 @@ static const char *mRGBText[] =
 	"0", "0", "0", "0"
 };
 
-static const char *aRGBText[] =
-{
-	"COMBINED", "TEXEL0", "TEXEL1", "PRIMITIVE",
-	"SHADE", "ENVIRONMENT", "1", "0",
-};
-
-static const char *saAText[] =
-{
-	"COMBINED", "TEXEL0", "TEXEL1", "PRIMITIVE",
-	"SHADE", "ENVIRONMENT", "1", "0",
-};
-
-static const char *sbAText[] =
+static const char *aText[] =
 {
 	"COMBINED", "TEXEL0", "TEXEL1", "PRIMITIVE",
 	"SHADE", "ENVIRONMENT", "1", "0",
@@ -183,12 +171,6 @@ static const char *mAText[] =
 {
 	"LOD_FRACTION", "TEXEL0", "TEXEL1", "PRIMITIVE",
 	"SHADE", "ENVIRONMENT", "PRIM_LOD_FRAC", "0",
-};
-
-static const char *aAText[] =
-{
-	"COMBINED", "TEXEL0", "TEXEL1", "PRIMITIVE",
-	"SHADE", "ENVIRONMENT", "1", "0",
 };
 
 static const char *tri_type[4] = {

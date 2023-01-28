@@ -78,7 +78,8 @@ public:
 				   N64FormatSize n64FmtSz,
 				   GHQTexInfo *info);
   uint64 checksum64(uint8 *src, int width, int height, int size, int rowStride, uint8 *palette);
-  wchar_t * getFormattedDmpTxFilename(wchar_t *wbuf, N64FormatSize n64FmtSz, Checksum r_crc64);
+  wchar_t * getFormattedRCRCDmpTxFilename(wchar_t *wbuf, N64FormatSize n64FmtSz, Checksum r_crc64);
+  wchar_t * getFormattedGCRCDmpTxFilename(wchar_t *wbuf, Checksum g_crc64);
   boolean dmptx(uint8 *src, int width, int height, int rowStridePixel, ColorFormat gfmt, N64FormatSize n64FmtSz, Checksum r_crc64);
   boolean reloadhirestex();
   void dumpcache();

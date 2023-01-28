@@ -147,21 +147,21 @@ void gDPSetCombine( u32 muxs0, u32 muxs1 )
 		saRGBText[gDP.combine.saRGB0],
 		sbRGBText[gDP.combine.sbRGB0],
 		mRGBText[gDP.combine.mRGB0],
-		aRGBText[gDP.combine.aRGB0],
-		saAText[gDP.combine.saA0],
-		sbAText[gDP.combine.sbA0],
+		aText[gDP.combine.aRGB0],
+		aText[gDP.combine.saA0],
+		aText[gDP.combine.sbA0],
 		mAText[gDP.combine.mA0],
-		aAText[gDP.combine.aA0] );
+		aText[gDP.combine.aA0] );
 
 	DebugMsg( DEBUG_NORMAL, "	%s, %s, %s, %s, %s, %s, %s, %s );\n",
 		saRGBText[gDP.combine.saRGB1],
 		sbRGBText[gDP.combine.sbRGB1],
 		mRGBText[gDP.combine.mRGB1],
-		aRGBText[gDP.combine.aRGB1],
-		saAText[gDP.combine.saA1],
-		sbAText[gDP.combine.sbA1],
+		aText[gDP.combine.aRGB1],
+		aText[gDP.combine.saA1],
+		aText[gDP.combine.sbA1],
 		mAText[gDP.combine.mA1],
-		aAText[gDP.combine.aA1] );
+		aText[gDP.combine.aA1] );
 #endif
 }
 

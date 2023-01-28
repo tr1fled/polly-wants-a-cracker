@@ -17,6 +17,7 @@
 #include "DisplayWindow.h"
 #include "GLideNHQ/TxFilterExport.h"
 #include <Graphics/Context.h>
+#include "TextDrawer.h"
 
 using namespace std;
 
@@ -132,6 +133,13 @@ static void checkHotkeys()
 		if (osal_is_key_pressed(config.hotkeys.enabledKeys[Config::hkTexDump], 0x0001))
 			textureCache().toggleDumpTex();
 	}
+
+#ifdef DEBUG_DUMP
+	if(osal_is_key_pressed(config.hotkeys.enabledKeys[Config::hkSceneRip], 0x0001)) {
+		if(config.sceneRipper.continuous == 0)
+			g_debugger.performSceneRip();
+	}
+#endif
 
 	if (osal_is_key_pressed(config.hotkeys.enabledKeys[Config::hkTexCoordBounds], 0x0001)) {
 		if (config.graphics2D.enableTexCoordBounds == 0)
@@ -258,6 +266,11 @@ void VI_UpdateScreen()
 		bVIUpdated = true;
 		wnd.updateScale();
 		perf.increaseFramesCount();
+
+#ifdef DEBUG_DUMP
+		if(config.sceneRipper.continuous != 0 && !g_debugger.isRipMode())
+			g_debugger.performSceneRip();
+#endif
 	}
 
 	if (config.frameBufferEmulation.enable) {

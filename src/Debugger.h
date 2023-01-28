@@ -27,14 +27,20 @@ public:
 	void checkDebugState();
 
 	void addTriangles(const graphics::Context::DrawTriangleParameters & _params);
-
 	void addRects(const graphics::Context::DrawRectParameters & _params);
+
+	void draw();
+
+	void performSceneRip();
+
+	u32 getRippedFrames() { return m_rippedFrames; }
 
 	bool isDebugMode() const { return m_bDebugMode; }
 	bool isCaptureMode() const { return m_bCapture; }
+	bool isRipMode() const { return m_bRip; }
 
-	void draw();
-	void performSceneRip();
+	bool canPerformSceneRip();
+	void resetContinuousRipMode();
 
 private:
 	struct TexInfo {
@@ -124,6 +130,35 @@ private:
 		bool isInside(long x, long y) const;
 	};
 
+	typedef struct {
+		f32 scene_x, scene_y, scene_z;
+		f32 r, g, b, a;
+		f32 t0_s, t0_t;
+		f32 t1_s, t1_t;
+	} RipVertex;
+
+	typedef struct {
+		RipVertex vertices[3];
+		u32 __PAD0 = 0;
+		f32 prim_r, prim_g, prim_b, prim_a;
+		f32 env_r, env_g, env_b, env_a;
+		f32 blend_r, blend_g, blend_b, blend_a;
+		u64 t0_g64Crc;
+		u64 t1_g64Crc;
+		u8 t0_wrapmode, t1_wrapmode;
+		u16 __PAD1 = 0;
+		u32 __PAD2 = 0;
+	} RipTriangle;
+
+	typedef struct
+	{
+		const u8 MAGIC[6] = { 'G', 'L', '6', '4', 'R', '\0'};
+		const u16 VERSION = 1;
+		char romName[20] = {0}; // no null terminator
+		u32 num_triangles = 0;
+		f32 fog_r, fog_g, fog_b;
+	} RipHeader;
+	
 	enum class Page {
 		general,
 		tex1,
@@ -167,7 +202,7 @@ private:
 	void _drawMouseCursor();
 	void _findSelected();
 
-	u32 _performSceneRip();
+	s32 _performSceneRip();
 
 	typedef std::list<TriInfo> Triangles;
 	typedef std::list<const TexInfo*> TexInfos;
@@ -184,9 +219,12 @@ private:
 	Page m_curPage = Page::general;
 	bool m_bDebugMode = false;
 	bool m_bCapture = false;
+	bool m_bRip = false;
 
 	long m_clickX = 0;
 	long m_clickY = 0;
+
+	u32 m_rippedFrames = 0;
 
 	u32 m_tmu = 0;
 	u32 m_startTexRow[2];

@@ -130,7 +130,7 @@ public:
 
 	void clearColorBuffer(float * _pColor);
 
-	int getTrianglesCount() const { return triangles.num; }
+	u32 getTrianglesCount() const { return triangles.num; }
 
 	bool isClipped(u32 _v0, u32 _v1, u32 _v2) const;
 

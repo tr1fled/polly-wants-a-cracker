@@ -83,7 +83,11 @@ private slots:
 
 	void on_noTexFileStorageCheckBox_toggled(bool checked);
 
+	void on_txGenRipCheckBox_toggled(bool checked);
+
 	void on_ripperGroupBox_toggled(bool checked);
+
+	void on_ripperContinuousCheckBox_toggled(bool checked);
 
 	void on_profilesComboBox_currentTextChanged(const QString &arg1);
 

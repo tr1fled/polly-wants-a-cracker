@@ -226,10 +226,13 @@ TAPI uint64 TAPIENTRY
 txfilter_checksum(uint8 *src, int width, int height, int size, int rowStride, uint8 *palette);
 
 TAPI wchar_t * TAPIENTRY
-txfilter_getFormattedDmpTxFilename(wchar_t *wbuf, N64FormatSize n64FmtSz, Checksum r_crc64);
+txfilter_getFormattedRCRCDmpTxFilename(wchar_t *wbuf, N64FormatSize n64FmtSz, Checksum r_crc64);
+
+TAPI wchar_t * TAPIENTRY
+txfilter_getFormattedGCRCDmpTxFilename(wchar_t *wbuf, Checksum g_crc64);
 
 TAPI boolean TAPIENTRY
-txfilter_dmptx(uint8 *src, int width, int height, int rowStridePixel, uint16 gfmt, N64FormatSize n64FmtSz, Checksum r_crc64);
+txfilter_dmptx(uint8 *src, int width, int height, int rowStridePixel, uint16 gfmt, N64FormatSize n64FmtSz, Checksum crc64);
 
 TAPI boolean TAPIENTRY
 txfilter_reloadhirestex();
