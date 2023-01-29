@@ -771,7 +771,7 @@ void Debugger::_drawTex(f32 _ulx, f32 _uly, f32 _yShift)
 	const CachedTexture * texture = m_triSel->tex_info[tex]->texture;
 	const gDPLoadTileInfo & texLoadInfo = m_triSel->tex_info[tex]->texLoadInfo;
 	OUTPUT1("CRC: 0x%08X", texture->crc);
-	OUTPUT1("ripCrc: 0x%016lX", texture->ripCrc);
+	OUTPUT1("ripCrc: 0x%016llX", texture->ripCrc);
 	OUTPUT1("tex_size: %s", ImageSizeText[texture->size]);
 	OUTPUT1("tex_format: %s", ImageFormatText[texture->format]);
 	OUTPUT1("width: %d", texture->width);
@@ -1061,7 +1061,7 @@ void Debugger::_drawTexture(f32 _ulx, f32 _uly, f32 _lrx, f32 _lry, f32 _yShift)
 	OUTPUT1("t_mem: %04x", pTexture->tMem);
 	OUTPUT1("framebuffer: %s", FrameBufferType[(u32)pTexture->frameBufferTexture]);
 	OUTPUT1("crc: 0x%08X", pTexture->crc);
-	OUTPUT1("ripCrc: 0x%016lX", pTexture->ripCrc);
+	OUTPUT1("ripCrc: 0x%016llX", pTexture->ripCrc);
 	//	OUTPUT1("texrecting: %d", cache[_debugger.tex_sel].texrecting);
 	OUTPUT1("tex_size: %s", ImageSizeText[pTexture->size]);
 	OUTPUT1("tex_format: %s", ImageFormatText[pTexture->format]);
@@ -1443,7 +1443,7 @@ s32 Debugger::_performSceneRip()
 	}
 
 #ifdef OS_WINDOWS
-	if ((srFile = _wfopen(wSrFile, wst("wb"))) != nullptr) {
+	if ((srFile = _wfopen(wSrFile.c_str(), wst("wb"))) != nullptr) {
 #else
 	char srFilebuf[MAX_PATH] = {0};
 	wcstombs(srFilebuf, wSrFile.c_str(), MAX_PATH);
@@ -1682,7 +1682,7 @@ s32 Debugger::_performSceneRip()
 					"%f,%f,%f,%f,"
 					"%f,%f,%f,%f,"
 					"%s,%s,"
-					"%016lX,%016lX",
+					"%016llX,%016llX",
 					triangles[i].vertices[0].scene_x,
 					triangles[i].vertices[0].scene_y,
 					triangles[i].vertices[0].scene_z,

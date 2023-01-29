@@ -595,7 +595,7 @@ TxFilter::getFormattedRCRCDmpTxFilename(wchar_t *wbuf, N64FormatSize n64FmtSz, C
 wchar_t *
 TxFilter::getFormattedGCRCDmpTxFilename(wchar_t *wbuf, Checksum g_crc64)
 {
-	tx_swprintf(wbuf, 256, wst("%016lX.png"), g_crc64);
+	tx_swprintf(wbuf, 256, wst("%016llX.png"), g_crc64);
 	return wbuf;
 }
 
