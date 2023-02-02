@@ -130,35 +130,45 @@ private:
 		bool isInside(long x, long y) const;
 	};
 
-	typedef struct {
+	struct RipVertex {
 		f32 scene_x, scene_y, scene_z;
 		f32 r, g, b, a;
-		f32 t0_s, t0_t;
-		f32 t1_s, t1_t;
-	} RipVertex;
+		f32 s0, t0;
+		f32 s1, t1;
+	};
 
-	typedef struct {
+	struct RipTexInfo {
+		u8 crc[8];
+		u8 maskS, maskT;
+		u8 wrapS, wrapT;
+	};
+
+	struct RipTriangle {
 		RipVertex vertices[3];
-		u32 __PAD0 = 0;
-		f32 prim_r, prim_g, prim_b, prim_a;
-		f32 env_r, env_g, env_b, env_a;
-		f32 blend_r, blend_g, blend_b, blend_a;
-		u64 t0_g64Crc;
-		u64 t1_g64Crc;
-		u8 t0_wrapmode, t1_wrapmode;
-		u16 __PAD1 = 0;
-		u32 __PAD2 = 0;
-	} RipTriangle;
 
-	typedef struct
-	{
+		gDPInfo::Color fog_color;
+		gDPInfo::Color blend_color;
+		gDPInfo::Color env_color;
+		gDPInfo::Color prim_color;
+		f32 primL, primM;
+		f32 fogMultiplier, fogOffset;
+		s32 K4, K5;
+
+		u8 combine[8];
+		u8 otherMode[8];
+		u32 geometryMode;
+
+		RipTexInfo tex_info[2];
+	};
+
+	struct RipHeader {
 		const u8 MAGIC[6] = { 'G', 'L', '6', '4', 'R', '\0'};
-		const u16 VERSION = 1;
-		char romName[20] = {0}; // no null terminator
+		const u16 VERSION = 2;
+		char romName[20] = {0};
 		u32 num_triangles = 0;
-		f32 fog_r, fog_g, fog_b;
-	} RipHeader;
-	
+		u32 microcode = 0;
+	};
+
 	enum class Page {
 		general,
 		tex1,
@@ -202,7 +212,9 @@ private:
 	void _drawMouseCursor();
 	void _findSelected();
 
+	FILE* _openRipFile();
 	s32 _performSceneRip();
+	std::vector<RipTriangle> m_ripTriangles;
 
 	typedef std::list<TriInfo> Triangles;
 	typedef std::list<const TexInfo*> TexInfos;

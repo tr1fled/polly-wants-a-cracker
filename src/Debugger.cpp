@@ -1352,7 +1352,7 @@ void Debugger::_drawDebugInfo()
 	}
 }
 
-s32 Debugger::_performSceneRip()
+FILE* Debugger::_openRipFile()
 {
 	wchar_t *pTxDumpPath = config.textureFilter.txDumpPath;
 	wstring txDumpPath(pTxDumpPath);
@@ -1378,7 +1378,7 @@ s32 Debugger::_performSceneRip()
 	FILE *srFile = nullptr;
 
 	if (!osal_path_existsW(wSrPath.c_str()) && osal_mkdirp(wSrPath.c_str()) != 0)
-		return -1;
+		return nullptr;
 
 	wstring wSrFile = wSrPath;
 	wSrFile += wst("/n64_scene");
@@ -1443,344 +1443,134 @@ s32 Debugger::_performSceneRip()
 	}
 
 #ifdef OS_WINDOWS
-	if ((srFile = _wfopen(wSrFile.c_str(), wst("wb"))) != nullptr) {
+	srFile = _wfopen(wSrFile.c_str(), wst("wb"));
 #else
 	char srFilebuf[MAX_PATH] = {0};
 	wcstombs(srFilebuf, wSrFile.c_str(), MAX_PATH);
-	if ((srFile = fopen(srFilebuf, "wb")) != nullptr) {
+	srFile = fopen(srFilebuf, "wb");
 #endif
 
-		const u32 ALL_NUM_TRIANGLES = static_cast<u32>(m_triangles.size());
+	return srFile;
+}
 
-		u32 num_triangles = 0;
+s32 Debugger::_performSceneRip()
+{
+	FILE *srFile = _openRipFile();
 
-		m_triSel = m_triangles.cbegin();
-
-		for(u32 i = 0; i < ALL_NUM_TRIANGLES; i++) {
-			if((u32)(m_triSel->type) == 0)
-				++num_triangles;
-			++m_triSel;
-		}
-
-		if(num_triangles == 0)
-			return -2;
-
-		RipHeader header;
-		header.num_triangles = num_triangles;
-		char mRomName[20] = {0};
-		wcstombs(mRomName, wRomName.c_str(), 20);
-		strncpy(header.romName, mRomName, 20); // omitting null-terminator
-
-		RipTriangle triangles[num_triangles];
-
-		memset(&triangles, 0, sizeof(triangles));
-
-		u32 tri_counter = 0;
-		m_triSel = m_triangles.cbegin();
-
-		//update texture cache before writing
-		textureCache().update(0);
-		textureCache().update(1);
-		currentCombiner()->update(true);
-
-		for(u32 i = 0; i < ALL_NUM_TRIANGLES; i++) {
-			if((u32)(m_triSel->type) != 0)
-			{
-				++m_triSel;
-				continue;
-			}
-
-			triangles[tri_counter];
-
-			if(tri_counter == 0)
-			{
-				header.fog_r = m_triSel->fog_color.r;
-				header.fog_g = m_triSel->fog_color.g;
-				header.fog_b = m_triSel->fog_color.b;
-			}
-
-			const u32 A0val = m_triSel->combine.saRGB0;
-
-			f32 t0_sS, t0_tS, t0_offsetS, t0_offsetT;
-			f32 t1_sS, t1_tS, t1_offsetS, t1_offsetT;
-			u64 t0_gcrc, t1_gcrc;
-			u8 t0_sm, t0_tm, t0_wm;
-			u8 t1_sm, t1_tm, t1_wm;
-			
-			t0_sS = t0_tS = t1_sS = t1_tS = 1.0f;
-			t0_offsetS = t0_offsetT = t1_offsetS = t1_offsetT = 0.0f;
-			t0_gcrc = t1_gcrc = 0;
-			t0_sm = t0_tm = t1_sm = t1_tm = 4;
-			t0_wm = t1_wm = 16;
-
-			if(m_triSel->tex_info[0]) {
-				const CachedTexture *t0 = m_triSel->tex_info[0]->texture;
-				t0_sS = m_triSel->tex_info[0]->scales * t0->scaleS;
-				t0_tS = m_triSel->tex_info[0]->scalet * t0->scaleT;
-				t0_offsetS = t0->offsetS;
-				t0_offsetT = t0->offsetT;
-				t0_sm = ((t0->clampS << 1) | t0->mirrorS) & 3;
-				t0_tm = ((t0->clampT << 1) | t0->mirrorT) & 3;
-				t0_wm = ((t0_sm << 2) | t0_tm) & 15;
-				t0_gcrc = t0->ripCrc;
-			}
-
-			// Zelda games multitexture (A0: TEXEL1)
-			if(A0val == 2) {
-				if(m_triSel->tex_info[0] && m_triSel->tex_info[1]) {
-					const CachedTexture *t1 = m_triSel->tex_info[1]->texture;
-					t1_sS = m_triSel->tex_info[1]->scales * t1->scaleS;
-					t1_tS = m_triSel->tex_info[1]->scalet * t1->scaleT;
-					t1_offsetS = t1->offsetS;
-					t1_offsetT = t1->offsetT;
-					t1_sm = ((t1->clampS << 1) | t1->mirrorS) & 3;
-					t1_tm = ((t1->clampT << 1) | t1->mirrorT) & 3;
-					t1_wm = ((t1_sm << 2) | t1_tm) & 15;
-					t1_gcrc = t1->ripCrc;
-				}
-			}
-
-			for(u32 j = 0; j < 3; ++j) {
-				triangles[tri_counter].vertices[j].scene_x = m_triSel->vertices[j].sx;
-				triangles[tri_counter].vertices[j].scene_y = m_triSel->vertices[j].sy;
-				triangles[tri_counter].vertices[j].scene_z =m_triSel->vertices[j].sz;
-				triangles[tri_counter].vertices[j].r = m_triSel->vertices[j].r;
-				triangles[tri_counter].vertices[j].g = m_triSel->vertices[j].g;
-				triangles[tri_counter].vertices[j].b = m_triSel->vertices[j].b;
-				triangles[tri_counter].vertices[j].a = m_triSel->vertices[j].a;
-				triangles[tri_counter].vertices[j].t0_s = (m_triSel->vertices[j].s0 * t0_sS) + t0_offsetS;
-				triangles[tri_counter].vertices[j].t0_t = ((-m_triSel->vertices[j].t0 * t0_tS) + 1.0f) + t0_offsetT;
-				triangles[tri_counter].vertices[j].t1_s = (m_triSel->vertices[j].s1 * t1_sS) + t1_offsetS;
-				triangles[tri_counter].vertices[j].t1_t = ((-m_triSel->vertices[j].t1 * t1_tS) + 1.0f) + t1_offsetT;
-			}
-
-			triangles[tri_counter].prim_r = m_triSel->prim_color.r;
-			triangles[tri_counter].prim_g = m_triSel->prim_color.g;
-			triangles[tri_counter].prim_b = m_triSel->prim_color.b;
-			triangles[tri_counter].prim_a = m_triSel->prim_color.a;
-
-			triangles[tri_counter].env_r = m_triSel->env_color.r;
-			triangles[tri_counter].env_g = m_triSel->env_color.g;
-			triangles[tri_counter].env_b = m_triSel->env_color.b;
-			triangles[tri_counter].env_a = m_triSel->env_color.a;
-
-			triangles[tri_counter].blend_r = m_triSel->blend_color.r;
-			triangles[tri_counter].blend_g = m_triSel->blend_color.g;
-			triangles[tri_counter].blend_b = m_triSel->blend_color.b;
-			triangles[tri_counter].blend_a = m_triSel->blend_color.a;
-
-			triangles[tri_counter].t0_g64Crc = t0_gcrc;
-			triangles[tri_counter].t1_g64Crc = t1_gcrc;
-
-			triangles[tri_counter].t0_wrapmode = t0_wm;
-			triangles[tri_counter].t1_wrapmode = t1_wm;
-
-			++tri_counter;
-			++m_triSel;
-		}
-
-		m_triSel = m_triangles.cbegin();
-
-		if (!srFile) {
-			srFile = nullptr;
-			return -3;
-		}
-
-		fwrite(&header, sizeof(header), 1, srFile);
-		fwrite(&triangles, sizeof(triangles), 1, srFile);
-
-		if(config.sceneRipper.CSVExport) {
-			FILE *srCsvFile = nullptr;
-
-			wchar_t wCsvFile[MAX_PATH];
-			wcscpy(wCsvFile, wSrFile.c_str());
-			int curSrfpp = wcslen(wCsvFile);
-			curSrfpp -= 4;
-			wCsvFile[curSrfpp] = '\0';
-			wcscat(wCsvFile, wst(".csv"));
-
-#ifdef OS_WINDOWS
-			if ((srCsvFile = _wfopen(wCsvFile, wst("wb"))) != nullptr) {
-#else
-			char srCsvFilebuf[MAX_PATH];
-			wcstombs(srCsvFilebuf, wCsvFile, MAX_PATH);
-			if ((srCsvFile = fopen(srCsvFilebuf, "wb")) != nullptr) {
-#endif
-				char **pCSVTriangles = new char*[num_triangles];
-
-				const char *CSVFileHeader =
-				"v0_x,v0_y,v0_z,"
-				"v0_r,v0_g,v0_b,v0_a,"
-				"v0_s0,v0_t0,v0_s1,v0_t1,"
-				"v1_x,v1_y,v1_z,"
-				"v1_r,v1_g,v1_b,v1_a,"
-				"v1_s0,v1_t0,v1_s1,v1_t1,"
-				"v2_x,v2_y,v2_z,"
-				"v2_r,v2_g,v2_b,v2_a,"
-				"v2_s0,v2_t0,v2_s1,v2_t1,"
-				"prim_r,prim_g,prim_b,prim_a,"
-				"env_r,env_g,env_b,env_a,"
-				"blend_r,blend_g,blend_b,blend_a,"
-				"t0_wrapmode,t1_wrapmode,"
-				"t0_G64Crc, t1_G64Crc,"
-				"fog_r,fog_g,fog_b\n";
-
-				if (!srCsvFile) {
-					srCsvFile = nullptr;
-					return -4;
-				}
-
-				fwrite(CSVFileHeader, strlen(CSVFileHeader), 1, srCsvFile);
-
-				for(u32 i = 0; i < num_triangles; i++)
-				{
-					char t0_combined_name[128];
-					char t1_combined_name[128];
-
-					char t0_strWm[16];
-					char t1_strWm[16];
-
-					const u8 tmpt0wm = triangles[i].t0_wrapmode;
-					const u8 tmpt1wm = triangles[i].t1_wrapmode;
-
-					const u64 tmpt0gcrc = triangles[i].t0_g64Crc;
-					const u64 tmpt1gcrc = triangles[i].t1_g64Crc;
-
-					sprintf(t0_strWm, "%s (%hhu)", combined_wrapmode_type[tmpt0wm], tmpt0wm);
-					sprintf(t1_strWm, "%s (%hhu)", combined_wrapmode_type[tmpt1wm], tmpt1wm);
-
-					wstring t0wsb;
-					wstring t1wsb;
-					wchar_t t0wcb[64];
-					wchar_t t1wcb[64];
-					
-					t0wsb.append(txfilter_getFormattedGCRCDmpTxFilename(t0wcb, tmpt0gcrc));
-					t1wsb.append(txfilter_getFormattedGCRCDmpTxFilename(t1wcb, tmpt1gcrc));
-
-					wcstombs(t0_combined_name, t0wsb.c_str(), 128);
-					wcstombs(t1_combined_name, t1wsb.c_str(), 128);
-
-					if(tmpt0gcrc == 0)
-						t0_combined_name[0] = '\0';
-
-					if(tmpt1gcrc == 0)
-						t1_combined_name[0] = '\0';
-
-					pCSVTriangles[i] = new char[1024];
-
-					sprintf(pCSVTriangles[i],
-					"%f,%f,%f,"
-					"%f,%f,%f,%f,"
-					"%f,%f,%f,%f,"
-					"%f,%f,%f,"
-					"%f,%f,%f,%f,"
-					"%f,%f,%f,%f,"
-					"%f,%f,%f,"
-					"%f,%f,%f,%f,"
-					"%f,%f,%f,%f,"
-					"%f,%f,%f,%f,"
-					"%f,%f,%f,%f,"
-					"%f,%f,%f,%f,"
-					"%s,%s,"
-					"%016llX,%016llX",
-					triangles[i].vertices[0].scene_x,
-					triangles[i].vertices[0].scene_y,
-					triangles[i].vertices[0].scene_z,
-					triangles[i].vertices[0].r,
-					triangles[i].vertices[0].g,
-					triangles[i].vertices[0].b,
-					triangles[i].vertices[0].a,
-					triangles[i].vertices[0].t0_s,
-					triangles[i].vertices[0].t0_t,
-					triangles[i].vertices[0].t1_s,
-					triangles[i].vertices[0].t1_t,
-					triangles[i].vertices[1].scene_x,
-					triangles[i].vertices[1].scene_y,
-					triangles[i].vertices[1].scene_z,
-					triangles[i].vertices[1].r,
-					triangles[i].vertices[1].g,
-					triangles[i].vertices[1].b,
-					triangles[i].vertices[1].a,
-					triangles[i].vertices[1].t0_s,
-					triangles[i].vertices[1].t0_t,
-					triangles[i].vertices[1].t1_s,
-					triangles[i].vertices[1].t1_t,
-					triangles[i].vertices[2].scene_x,
-					triangles[i].vertices[2].scene_y,
-					triangles[i].vertices[2].scene_z,
-					triangles[i].vertices[2].r,
-					triangles[i].vertices[2].g,
-					triangles[i].vertices[2].b,
-					triangles[i].vertices[2].a,
-					triangles[i].vertices[2].t0_s,
-					triangles[i].vertices[2].t0_t,
-					triangles[i].vertices[2].t1_s,
-					triangles[i].vertices[2].t1_t,
-					triangles[i].prim_r,
-					triangles[i].prim_g,
-					triangles[i].prim_b,
-					triangles[i].prim_a,
-					triangles[i].env_r,
-					triangles[i].env_g,
-					triangles[i].env_b,
-					triangles[i].env_a,
-					triangles[i].blend_r,
-					triangles[i].blend_g,
-					triangles[i].blend_b,
-					triangles[i].blend_a,
-					t0_strWm,
-					t1_strWm,
-					tmpt0gcrc,
-					tmpt1gcrc);
-
-					const size_t currCSVRowLen = strlen(pCSVTriangles[i]);
-
-					if(i != 0) {
-						sprintf((pCSVTriangles[i] + currCSVRowLen), "\n");
-					} else {
-						sprintf((pCSVTriangles[0] + currCSVRowLen),
-							",%f,%f,%f\n",
-							header.fog_r,
-							header.fog_g,
-							header.fog_b);
-					}
-
-					fwrite(pCSVTriangles[i], strlen(pCSVTriangles[i]), 1, srCsvFile);
-					delete[] pCSVTriangles[i];
-				}
-				
-				delete[] pCSVTriangles;
-
-				if (srCsvFile) {
-					fclose(srCsvFile);
-					srCsvFile = nullptr;
-				}
-			} else {
-				return -6;
-			}
-		}
-
-		if (srFile) {
-			fclose(srFile);
-			srFile = nullptr;
-		}
-
-		if(!config.sceneRipper.continuous) {
-			dwnd().getDrawer().showMessage("Scene Ripped!\n", Milliseconds(750));
-		} else {
-			m_rippedFrames++;
-
-			if(config.sceneRipper.target != 0) {
-				if(m_rippedFrames == config.sceneRipper.target) {
-					resetContinuousRipMode();
-				}
-			}
-		}
-
-		return 1;
-	} else {
+	if (!srFile) {
 		return -5;
 	}
+
+	//update texture cache before writing
+	textureCache().update(0);
+	textureCache().update(1);
+	currentCombiner()->update(true);
+
+	m_ripTriangles.clear();
+
+	for (const auto& tri : m_triangles) {
+		// Skip texrect/fillrect/background tris
+		if (tri.type != ttTriangle) {
+			continue;
+		}
+
+		RipTriangle rip_tri = {0};
+
+		float scaleS[2] = {1.0f, 1.0f};
+		float scaleT[2] = {1.0f, 1.0f};
+		float offsetS[2] = {0.0f, 0.0f};
+		float offsetT[2] = {0.0f, 0.0f};
+
+		for (int i = 0; i != 2; ++i) {
+			if (tri.tex_info[i]) {
+				const CachedTexture &t = *tri.tex_info[0]->texture;
+
+				// Read texture scale/offset for UV transform
+				scaleS[i] = tri.tex_info[i]->scales * t.scaleS;
+				scaleT[i] = tri.tex_info[i]->scalet * t.scaleT;
+				offsetS[i] = t.offsetS;
+				offsetT[i] = t.offsetT;
+
+				RipTexInfo& rip_info = rip_tri.tex_info[i];
+				memcpy(&rip_info.crc, &t.ripCrc, 8);  // use memcpy for unaligned u64
+				rip_info.maskS = t.maskS;
+				rip_info.maskT = t.maskT;
+				rip_info.wrapS = bool(t.mirrorS) | (bool(t.clampS) << 1);
+				rip_info.wrapT = bool(t.mirrorT) | (bool(t.clampT) << 1);
+			}
+		}
+
+		for (int i = 0; i != 3; ++i) {
+			const Vertex& v = tri.vertices[i];
+			RipVertex& rip_v = rip_tri.vertices[i];
+
+			rip_v.scene_x = v.sx;
+			rip_v.scene_y = v.sy;
+			rip_v.scene_z = v.sz;
+
+			rip_v.r = v.r;
+			rip_v.g = v.g;
+			rip_v.b = v.b;
+			rip_v.a = v.a;
+
+			// UV transform
+			rip_v.s0 = (v.s0 * scaleS[0]) + offsetS[0];
+			rip_v.t0 = ((-v.t0 * scaleT[0]) + 1.0f) + offsetT[0];
+			rip_v.s1 = (v.s1 * scaleS[1]) + offsetS[1];
+			rip_v.t1 = ((-v.t1 * scaleT[1]) + 1.0f) + offsetT[1];
+		}
+
+		rip_tri.fog_color = tri.fog_color;
+		rip_tri.blend_color = tri.blend_color;
+		rip_tri.env_color = tri.env_color;
+		rip_tri.prim_color = tri.prim_color;
+		rip_tri.primL = tri.prim_color.l;
+		rip_tri.primM = tri.prim_color.m;
+		rip_tri.fogMultiplier = tri.fogMultiplier;
+		rip_tri.fogOffset = tri.fogOffset;
+		rip_tri.K4 = tri.K4;
+		rip_tri.K5 = tri.K5;
+
+		memcpy(&rip_tri.combine, &tri.combine, 8);
+		memcpy(&rip_tri.otherMode, &tri.otherMode, 8);
+		rip_tri.geometryMode = tri.geometryMode;
+
+		m_ripTriangles.push_back(rip_tri);
+	}
+
+	if (m_ripTriangles.empty()) {
+		return -2;
+	}
+
+	RipHeader header;
+	memcpy(&header.romName, &RSP.romname, 20);
+	header.num_triangles = m_ripTriangles.size();
+	header.microcode = GBI.getMicrocodeType();
+
+	fwrite(&header, sizeof(header), 1, srFile);
+	fwrite(
+		&m_ripTriangles[0],
+		m_ripTriangles.size() * sizeof(RipTriangle),
+		1,
+		srFile
+	);
+	fclose(srFile);
+
+	// TODO: restore csv writing
+
+	if(!config.sceneRipper.continuous) {
+		dwnd().getDrawer().showMessage("Scene Ripped!\n", Milliseconds(750));
+	} else {
+		m_rippedFrames++;
+
+		if(config.sceneRipper.target != 0) {
+			if(m_rippedFrames == config.sceneRipper.target) {
+				resetContinuousRipMode();
+			}
+		}
+	}
+
+	return 1;
 }
 
 void Debugger::draw()
@@ -1789,7 +1579,7 @@ void Debugger::draw()
 		if(!m_bRip)
 			_drawFrameBuffer(frameBufferList().getCurrent());
 		dwnd().swapBuffers();
-	} else { 
+	} else {
 		_drawDebugInfo();
 	}
 
