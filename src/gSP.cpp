@@ -794,7 +794,7 @@ void gSPTransformVertex(u32 v, SPVertex * spVtx, float mtx[4][4])
 			CopyMatrix(ripMatrix, gSP.matrix.modelView[ripMode - 1]);
 			break;
 		default:
-			// projection
+			// Perspective
 			CopyMatrix(ripMatrix, mtx);
 			break;
 	}
@@ -823,6 +823,36 @@ void gSPTransformVertex(u32 v, SPVertex * spVtx, float mtx[4][4])
 					ripMatrix[3][2];
 #endif
 	}
+#ifdef DEBUG_DUMP
+	if(config.sceneRipper.updateRipModes != 0)
+	{
+		if(ripMode == 0)
+			g_debugger.resetValidRipModes();
+
+		bool valid_rip_mode = false;
+
+		for (int i = 0; i < VNUM; ++i) {
+			SPVertex & vtx = spVtx[v+i];
+			if(vtx.sx != 0.0f && vtx.sy != 0.0f && vtx.sz != 0.0f) {
+				valid_rip_mode = true;
+				break;
+			}
+		}
+
+		g_debugger.setValidRipModes(valid_rip_mode); // uses current rip mode
+		
+		if(ripMode != 34)
+		{
+			config.sceneRipper.sceneRipMode = ripMode + 1;
+		}
+		else
+		{
+			config.sceneRipper.updateRipModes = 0;
+			config.sceneRipper.sceneRipMode = 0;
+			dwnd().getDrawer().showMessage("Scene Rip Modes Updated!\n", Milliseconds(750));
+		}
+	}
+#endif
 #else
 	void gSPTransformVector_NEON(float vtx[4], float mtx[4][4]);
 	void gSPTransformVertex4NEON(u32 v, float mtx[4][4]);
@@ -1750,12 +1780,20 @@ void gSPLightColor( u32 lightNum, u32 packedColor )
 
 void gSPFogFactor( s16 fm, s16 fo )
 {
+	// 256 fm = 1.0 fmf
+	// 0 fm = 0.0 fmf
+	// 256 fo = 1.0 fof
+	// 0 fo = 0.0 fof
+	fm = 0;
+	fo = 0;
 	gSP.fog.multiplier = fm;
 	gSP.fog.offset = fo;
 	gSP.fog.multiplierf = _FIXED2FLOAT(fm, 8);
 	gSP.fog.offsetf = _FIXED2FLOAT(fo, 8);
 
 	gSP.changed |= CHANGED_FOGPOSITION;
+	string args = "gSPFogFactor(" + to_string(fm) + ", " + to_string(fo) + "), " + to_string(gSP.fog.multiplierf) + ", " + to_string(gSP.fog.offsetf) + "\n";
+	//dwnd().getDrawer().showMessage(args, Milliseconds(1000));
 	DebugMsg(DEBUG_NORMAL, "gSPFogFactor( %i, %i );\n", fm, fo);
 }
 

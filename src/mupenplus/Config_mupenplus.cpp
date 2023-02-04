@@ -335,7 +335,7 @@ void Config_LoadCustomConfig()
 	char value[PATH_MAX];
 	m64p_error result;
 	std::string ROMname = RSP.romname;
-	const char* pathName = ConfigGetSharedDataFilepath("GLideN64.custom.ini");
+	const char* pathName = ConfigGetSharedDataFilepath("GLideN64_sceneripper.custom.ini");
 	if (pathName == nullptr)
 		return;
 	for (size_t pos = ROMname.find(' '); pos != std::string::npos; pos = ROMname.find(' ', pos))

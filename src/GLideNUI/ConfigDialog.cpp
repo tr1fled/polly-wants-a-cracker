@@ -10,6 +10,7 @@
 #include <QRegularExpression>
 #include <QInputDialog>
 #include <QDirIterator>
+#include <QStandardItemModel>
 #include <qnamespace.h>
 
 #include "../Config.h"
@@ -124,6 +125,33 @@ public:
 private:
 	quint32 m_hid = 0;
 };
+
+void ConfigDialog::_removeRipModes() {
+	u32 startingIdx = ui->ripperRipmodeComboBox->currentIndex();
+
+	std::array<bool,34> validRipModes = g_debugger.getValidRipModes();
+
+	QListView* view = qobject_cast<QListView *>(ui->ripperRipmodeComboBox->view());
+
+	for(int i = 1; i < 33; ++i) {
+		if(!validRipModes[i]) {
+			// mode 0-31 (index 1-32 respectively)
+			QString num_mode_str = QString::number(i - 1);
+			ui->ripperRipmodeComboBox->setCurrentText(num_mode_str);
+			int currIdx = ui->ripperRipmodeComboBox->currentIndex();
+			view->setRowHidden(currIdx, true);
+			QStandardItemModel* model = qobject_cast<QStandardItemModel *>(ui->ripperRipmodeComboBox->model());
+			QStandardItem* item = model->item(currIdx);
+			item->setFlags(item->flags() & ~Qt::ItemIsEnabled);
+		}
+	}
+
+	if(startingIdx != 0 && validRipModes[startingIdx]) {
+		ui->ripperRipmodeComboBox->setCurrentIndex(startingIdx);
+	} else {
+		ui->ripperRipmodeComboBox->setCurrentIndex(0);
+	}
+} 
 
 void ConfigDialog::_init(bool reInit, bool blockCustomSettings)
 {
@@ -436,6 +464,7 @@ void ConfigDialog::_init(bool reInit, bool blockCustomSettings)
 
 	// Scene ripper settings
 	ui->ripperGroupBox->setChecked(config.sceneRipper.enableRipping != 0);
+	ui->ripperUpdateRipModesCheckBox->setChecked(config.sceneRipper.updateRipModes != 0);
 	ui->ripperEntireSceneCheckBox->setChecked(config.sceneRipper.entireScene != 0);
 	ui->ripperRipmodeComboBox->setCurrentIndex(config.sceneRipper.sceneRipMode);
 	ui->ripperCSVExportCheckBox->setChecked(config.sceneRipper.CSVExport != 0);
@@ -798,6 +827,7 @@ void ConfigDialog::accept(bool justSave) {
 
 	// Scene Ripping settings
 	config.sceneRipper.enableRipping = ui->ripperGroupBox->isChecked() ? 1 : 0;
+	config.sceneRipper.updateRipModes = ui->ripperUpdateRipModesCheckBox->isChecked() ? 1 : 0;
 	config.sceneRipper.entireScene = ui->ripperEntireSceneCheckBox->isChecked() ? 1 : 0;
 	config.sceneRipper.sceneRipMode = ui->ripperRipmodeComboBox->currentIndex();
 	config.sceneRipper.CSVExport = ui->ripperCSVExportCheckBox->isChecked() ? 1 : 0;
@@ -1066,6 +1096,25 @@ void ConfigDialog::on_fontSizeSpinBox_valueChanged(int value)
 	ui->fontPreviewLabel->setFont(m_font);
 }
 
+void ConfigDialog::on_ripperUpdateRipModesCheckBox_toggled(bool checked) {
+	if(checked)
+	{
+		ui->ripperRipmodeComboBox->setCurrentIndex(0);
+		ui->ripperContinuousCheckBox->setChecked(false);
+		ui->ripperCSVExportCheckBox->setChecked(false);
+		config.sceneRipper.updateRipModes = 1;
+	}
+	else
+	{
+		_removeRipModes();
+		config.sceneRipper.updateRipModes = 0;
+	}
+
+	ui->ripperRipmodeComboBox->setEnabled(!checked);
+	ui->ripperContinuousCheckBox->setEnabled(!checked);
+	ui->ripperCSVExportCheckBox->setEnabled(!checked);
+}
+
 void ConfigDialog::on_ripperGroupBox_toggled(bool checked)
 {
 	if(!checked)
@@ -1117,6 +1166,11 @@ void ConfigDialog::on_tabWidget_currentChanged(int tab)
 		m_fontsInited = true;
 	}
 
+	if(ui->tabWidget->tabText(tab) == tr("Scene Ripping") && ui->ripperGroupBox->isChecked()) {
+		if(config.sceneRipper.updateRipModes && g_debugger.isValidRipModesModified())
+			ui->ripperUpdateRipModesCheckBox->setChecked(false);
+	}
+
 	ui->n64DepthCompareComboBox->setStyleSheet("");
 	ui->frameBufferCheckBox->setStyleSheet("");
 }
@@ -1128,7 +1182,7 @@ void ConfigDialog::on_anisotropicSlider_valueChanged(int value)
 
 void ConfigDialog::setTitle()
 {
-	setWindowTitle(tr("GLideN64 Settings"));
+	setWindowTitle(tr("GLideN64 SceneRipper Settings"));
 }
 
 void ConfigDialog::on_profilesComboBox_currentTextChanged(const QString &profile)

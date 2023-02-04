@@ -42,11 +42,17 @@ public:
 	bool canPerformSceneRip();
 	void resetContinuousRipMode();
 
+	void setValidRipModes(bool is_valid);
+	void resetValidRipModes();
+	std::array<bool, 34> getValidRipModes() const { return m_bValidRipModes; }
+	bool isValidRipModesModified();
+
 private:
 	struct TexInfo {
 		f32 scales, scalet;
 		const CachedTexture * texture;
 		gDPLoadTileInfo texLoadInfo;
+		bool usingTile;
 	};
 
 	struct Vertex {
@@ -232,6 +238,8 @@ private:
 	bool m_bDebugMode = false;
 	bool m_bCapture = false;
 	bool m_bRip = false;
+
+	std::array<bool,34> m_bValidRipModes;
 
 	long m_clickX = 0;
 	long m_clickY = 0;

@@ -254,6 +254,7 @@ struct Config
 		u32 enableRipping;
 		u32 entireScene;
 		u32 sceneRipMode;
+		u32 updateRipModes;
 		u32 CSVExport;
 		u32 continuous;
 		u32 target;

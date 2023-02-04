@@ -295,6 +295,7 @@ void Debugger::_fillTriInfo(TriInfo & _info)
 			pInfo->scalet = gSP.texture.scalet;
 			pInfo->texture = cache.current[i];
 			pInfo->texLoadInfo = gDP.loadInfo[gSP.textureTile[i]->tmem];
+			pInfo->usingTile = currentCombiner()->usesTile(i);
 			_info.tex_info[i].reset(pInfo);
 		}
 	}
@@ -791,8 +792,17 @@ void Debugger::_drawTex(f32 _ulx, f32 _uly, f32 _yShift)
 	OUTPUT1("lr_t: %d", texLoadInfo.lrt);
 	OUTPUT1("scale_s: %f", texture->scaleS);
 	OUTPUT1("scale_t: %f", texture->scaleT);
+	OUTPUT1("shiftscale_s: %f", texture->shiftScaleS);
+	OUTPUT1("shiftscale_t: %f", texture->shiftScaleT);
 	OUTPUT1("s_mode: %s", tex_type[((texture->clampS << 1) | texture->mirrorS) & 3]);
 	OUTPUT1("t_mode: %s", tex_type[((texture->clampT << 1) | texture->mirrorT) & 3]);
+	if(tex == 0) {
+		OUTPUT1("usingTile: %d", m_triSel->tex_info[tex]->usingTile);
+	} else {
+		const CachedTexture * texture0 = m_triSel->tex_info[0]->texture;
+		bool t0eqt1 = (*texture0 == *texture);
+		OUTPUT1("usingTile: %d", m_triSel->tex_info[tex]->usingTile && !t0eqt1);
+	}
 }
 
 void Debugger::_drawColors(f32 _ulx, f32 _uly, f32 _yShift)
@@ -1482,12 +1492,21 @@ s32 Debugger::_performSceneRip()
 		float offsetT[2] = {0.0f, 0.0f};
 
 		for (int i = 0; i != 2; ++i) {
-			if (tri.tex_info[i]) {
-				const CachedTexture &t = *tri.tex_info[0]->texture;
+			if (tri.tex_info[i] && tri.tex_info[i]->usingTile) {
+				const CachedTexture &t = *tri.tex_info[i]->texture;
+
+				// check if tex1 is a valid multi-texture
+				if(i == 1) {
+					const CachedTexture &t0 = *tri.tex_info[0]->texture;
+					if(t0 == t) {
+						// tex0 and tex1 have the same values, don't use tex1
+						break;
+					}
+				}
 
 				// Read texture scale/offset for UV transform
-				scaleS[i] = tri.tex_info[i]->scales * t.scaleS;
-				scaleT[i] = tri.tex_info[i]->scalet * t.scaleT;
+				scaleS[i] = (tri.tex_info[i]->scales * t.scaleS) * t.shiftScaleS;
+				scaleT[i] = (tri.tex_info[i]->scalet * t.scaleT) * t.shiftScaleT;
 				offsetS[i] = t.offsetS;
 				offsetT[i] = t.offsetT;
 
@@ -1497,6 +1516,12 @@ s32 Debugger::_performSceneRip()
 				rip_info.maskT = t.maskT;
 				rip_info.wrapS = bool(t.mirrorS) | (bool(t.clampS) << 1);
 				rip_info.wrapT = bool(t.mirrorT) | (bool(t.clampT) << 1);
+			} else {
+				if(i == 0) {
+					// tex0 is null, don't bother setting up tex1
+					// TODO: check if tex0 == null, tex1 != null condition exists (possible bug?)
+					break;
+				}
 			}
 		}
 
@@ -1514,6 +1539,7 @@ s32 Debugger::_performSceneRip()
 			rip_v.a = v.a;
 
 			// UV transform
+			// TODO: figure out and implement shiftScale offset
 			rip_v.s0 = (v.s0 * scaleS[0]) + offsetS[0];
 			rip_v.t0 = ((-v.t0 * scaleT[0]) + 1.0f) + offsetT[0];
 			rip_v.s1 = (v.s1 * scaleS[1]) + offsetS[1];
@@ -1616,6 +1642,22 @@ void Debugger::resetContinuousRipMode() {
 	m_rippedFrames = 0;
 }
 
+void Debugger::setValidRipModes(bool is_valid) {
+	m_bValidRipModes[config.sceneRipper.sceneRipMode] = is_valid;
+}
+
+bool Debugger::isValidRipModesModified() {
+	// modelviewi should always be available
+	if(m_bValidRipModes[0])
+		return true;
+	return false;
+}
+
+void Debugger::resetValidRipModes() {
+	for(int i = 0; i < 34; ++i)
+		m_bValidRipModes[i] = false;
+}
+
 #else // DEBUG_DUMP
 
 Debugger::Debugger() : m_bDebugMode(false) {}
@@ -1627,5 +1669,8 @@ void Debugger::draw() {}
 bool Debugger::canPerformSceneRip() { return false; }
 void Debugger::performSceneRip() {}
 void Debugger::resetContinuousRipMode() {}
+void Debugger::setValidRipModes(bool is_valid) {};
+void Debugger::resetValidRipModes() {};
+bool Debugger::isValidRipModesModified() { return false; }
 
 #endif // DEBUG_DUMP

@@ -1033,7 +1033,7 @@ No texture enhancement</extracomment>
         <source>1. The font preview only shows the regular style for the font family. Some styles like bold and italic display only in game.
 
 2. If the desired font is not listed above:
-* navigate to your installation where GLideN64.ini is located, and open it with a text editor.
+* navigate to your installation where GLideN64_sceneripper.ini is located, and open it with a text editor.
 * find your active profile [Default = User],
 * change the value of &quot;font\name=NAME.ttf&quot; to &quot;font\name=Full Name of Font.ttf&quot;
    do not include the path to where the font is located before the name.
@@ -1043,7 +1043,7 @@ The font&apos;s full name can be found in Settings&gt;Personalization&gt;Fonts</
         <translation>1. La previsualización de fuentes solo muestran el estilo normal de la familia. Algunos estilos, como la negrita y la cursiva, solo se mostrarán durante una partida.
 
 2. Si la fuente que buscas no aparece en la lista de arriba:
-* ve a donde se encuentra el archivo GLideN64.ini y ábrelo con un editor de texto.
+* ve a donde se encuentra el archivo GLideN64_sceneripper.ini y ábrelo con un editor de texto.
 * localiza tu perfil activo [predeterminado = User],
 * cambia el valor de &quot;font\name=NOMBRE.ttf&quot; a &quot;font\name=Nombre completo de la fuente.ttf&quot;
    (no incluyas la ruta donde se encuentra la fuente).

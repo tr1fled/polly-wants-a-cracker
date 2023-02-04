@@ -12,9 +12,9 @@
 
 #include "Settings.h"
 
-static const char * strIniFileName = "GLideN64.ini";
-static const char * strDefaultIniFileName = "GLideN64.default.ini";
-static const char * strCustomSettingsFileName = "GLideN64.custom.ini";
+static const char * strIniFileName = "GLideN64_sceneripper.ini";
+static const char * strDefaultIniFileName = "GLideN64_sceneripper.default.ini";
+static const char * strCustomSettingsFileName = "GLideN64_sceneripper.custom.ini";
 static QString strUserProfile("User");
 
 static
@@ -151,6 +151,7 @@ void _loadSettings(QSettings & settings)
 
 	settings.beginGroup("sceneRipper");
 	config.sceneRipper.enableRipping = settings.value("enableRipping", config.sceneRipper.enableRipping).toInt();
+	config.sceneRipper.updateRipModes = settings.value("updateRipModes", config.sceneRipper.updateRipModes).toInt();
 	config.sceneRipper.entireScene = settings.value("entireScene", config.sceneRipper.entireScene).toInt();
 	config.sceneRipper.sceneRipMode = settings.value("sceneRipMode", config.sceneRipper.sceneRipMode).toInt();
 	config.sceneRipper.CSVExport = settings.value("CSVExport", config.sceneRipper.CSVExport).toInt();
@@ -300,6 +301,7 @@ void _writeSettingsToFile(const QString & filename)
 	settings.setValue("enableRipping", config.sceneRipper.enableRipping);
 	settings.setValue("entireScene", config.sceneRipper.entireScene);
 	settings.setValue("sceneRipMode", config.sceneRipper.sceneRipMode);
+	settings.setValue("updateRipModes", config.sceneRipper.updateRipModes);
 	settings.setValue("CSVExport", config.sceneRipper.CSVExport);
 	settings.setValue("continuous", config.sceneRipper.continuous);
 	settings.setValue("target", config.sceneRipper.target);
@@ -574,6 +576,7 @@ void saveCustomRomSettings(const QString & _strIniFolder, const char * _strRomNa
 	WriteCustomSetting(sceneRipper, enableRipping);
 	WriteCustomSetting(sceneRipper, entireScene);
 	WriteCustomSetting(sceneRipper, sceneRipMode);
+	WriteCustomSetting(sceneRipper, updateRipModes);
 	WriteCustomSetting(sceneRipper, CSVExport);
 	WriteCustomSetting(sceneRipper, continuous);
 	WriteCustomSetting(sceneRipper, target);

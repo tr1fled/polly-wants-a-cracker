@@ -87,6 +87,8 @@ private slots:
 
 	void on_ripperGroupBox_toggled(bool checked);
 
+	void on_ripperUpdateRipModesCheckBox_toggled(bool checked);
+
 	void on_ripperContinuousCheckBox_toggled(bool checked);
 
 	void on_profilesComboBox_currentTextChanged(const QString &arg1);
@@ -107,6 +109,7 @@ private:
 	void _init(bool reInit = false, bool blockCustomSettings = false);
 	void _getTranslations(QStringList & _translationFiles) const;
 	void _switchDest(bool isGame);
+	void _removeRipModes();
 	QString _hotkeyDescription(quint32 _idx) const;
 
 	Ui::ConfigDialog *ui;

@@ -12,8 +12,8 @@
 #include <algorithm>
 #include <memory>
 
-static const char * strIniFileName = "GLideN64.ini";
-static const char * strCustomSettingsFileName = "GLideN64.custom.ini";
+static const char * strIniFileName = "GLideN64_sceneripper.ini";
+static const char * strCustomSettingsFileName = "GLideN64_sceneripper.custom.ini";
 static const char * strUserProfile = "User";
 
 static

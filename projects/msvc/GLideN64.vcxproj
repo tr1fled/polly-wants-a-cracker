@@ -88,7 +88,7 @@
     <LinkIncremental>false</LinkIncremental>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)'=='Debug_mupenplus' Or '$(Configuration)'=='Release_mupenplus'">
-    <TargetName>mupen64plus-video-GLideN64</TargetName>
+    <TargetName>mupen64plus-video-GLideN64-SceneRipper</TargetName>
   </PropertyGroup>
   <ItemDefinitionGroup>
     <ClCompile>

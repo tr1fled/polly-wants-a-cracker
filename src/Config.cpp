@@ -149,6 +149,7 @@ void Config::resetToDefaults()
 	sceneRipper.enableRipping = 0;
 	sceneRipper.entireScene = 1;
 	sceneRipper.sceneRipMode = 0;
+	sceneRipper.updateRipModes = 0;
 	sceneRipper.CSVExport = 0;
 	sceneRipper.continuous = 0;
 	sceneRipper.target = 30;

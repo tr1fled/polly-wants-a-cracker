@@ -1097,7 +1097,7 @@ void TextureCache::_loadBackground(CachedTexture *pTexture)
 	pTexture->ripCrc = XXH3_64bits((u8*)pDest, pTexture->textureBytes);
 #endif
 
-	if ((m_toggleDumpTex &&
+	if ((m_bToggleDumpTex &&
 		config.textureFilter.txHiresEnable != 0 &&
 		config.hotkeys.enabledKeys[Config::HotKey::hkTexDump] != 0) ||
 		config.textureFilter.txDump) {
@@ -1506,7 +1506,7 @@ void TextureCache::_loadFast(u32 _tile, CachedTexture *_pTexture)
 #ifdef DEBUG_DUMP
 		_pTexture->ripCrc = XXH3_64bits((u8*)m_tempTextureHolder.data(), _pTexture->textureBytes);
 #endif
-		if ((m_toggleDumpTex &&
+		if ((m_bToggleDumpTex &&
 			config.textureFilter.txHiresEnable != 0 &&
 			config.hotkeys.enabledKeys[Config::HotKey::hkTexDump] != 0) ||
 			config.textureFilter.txDump) {
@@ -1695,7 +1695,7 @@ void TextureCache::_loadAccurate(u32 _tile, CachedTexture *_pTexture)
 #ifdef DEBUG_DUMP
 			_pTexture->ripCrc = XXH3_64bits((u8*)(m_tempTextureHolder.data() + texDataOffset), _pTexture->textureBytes);
 #endif
-			if ((m_toggleDumpTex &&
+			if ((m_bToggleDumpTex &&
 				config.textureFilter.txHiresEnable != 0 &&
 				config.hotkeys.enabledKeys[Config::HotKey::hkTexDump] != 0) ||
 				config.textureFilter.txDump) {
@@ -1767,7 +1767,7 @@ void TextureCache::_loadAccurate(u32 _tile, CachedTexture *_pTexture)
 #ifdef DEBUG_DUMP
 		_pTexture->ripCrc = XXH3_64bits((u8*)m_tempTextureHolder.data(), _pTexture->textureBytes);
 #endif
-		if ((m_toggleDumpTex &&
+		if ((m_bToggleDumpTex &&
 			config.textureFilter.txHiresEnable != 0 &&
 			config.hotkeys.enabledKeys[Config::HotKey::hkTexDump] != 0) ||
 			config.textureFilter.txDump) {
@@ -2080,8 +2080,8 @@ void TextureCache::clear()
 
 void TextureCache::toggleDumpTex()
 {
-	m_toggleDumpTex = !m_toggleDumpTex;
-	if (m_toggleDumpTex) {
+	m_bToggleDumpTex = !m_bToggleDumpTex;
+	if (m_bToggleDumpTex) {
 		displayLoadProgress(L"Texture dump - ON\n");
 		clear();
 		std::this_thread::sleep_for(std::chrono::seconds(1));
@@ -2093,7 +2093,7 @@ void TextureCache::toggleDumpTex()
 
 bool TextureCache::isDmpTxEnabled()
 {
-	return m_toggleDumpTex;
+	return m_bToggleDumpTex;
 }
 
 void TextureCache::update(u32 _t)
@@ -2209,6 +2209,9 @@ void TextureCache::update(u32 _t)
 
 	pCurrent->scaleS = 1.0f / (pCurrent->maskS ? f32(pow2(pCurrent->width)) : f32(pCurrent->width));
 	pCurrent->scaleT = 1.0f / (pCurrent->maskT ? f32(pow2(pCurrent->height)) : f32(pCurrent->height));
+
+	pCurrent->shiftScaleS = calcShiftScaleS(*pTile);
+	pCurrent->shiftScaleT = calcShiftScaleT(*pTile);
 
 	pCurrent->hdRatioS = 1.0f;
 	pCurrent->hdRatioT = 1.0f;

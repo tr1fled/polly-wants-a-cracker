@@ -1115,7 +1115,7 @@ No texture enhancement</extracomment>
       <source>1. The font preview only shows the regular style for the font family. Some styles like bold and italic display only in game.
 
 2. If the desired font is not listed above:
-* navigate to your installation where GLideN64.ini is located, and open it with a text editor.
+* navigate to your installation where GLideN64_sceneripper.ini is located, and open it with a text editor.
 * find your active profile [Default = User],
 * change the value of &quot;font\name=NAME.ttf&quot; to &quot;font\name=Full Name of Font.ttf&quot;
    do not include the path to where the font is located before the name.
@@ -1125,7 +1125,7 @@ The font&apos;s full name can be found in Settings&gt;Personalization&gt;Fonts</
       <translation>1. 字体预览仅显示字体系列的常规样式。有些样式如粗体和斜体仅在游戏中显示。
 
 2. 如果上面没有列出所需的字体:
-* 导航到 GLideN64.ini 所在的安装位置,并使用文本编辑器打开它。
+* 导航到 GLideN64_sceneripper.ini 所在的安装位置,并使用文本编辑器打开它。
 * 查找您的活动配置文件 [默认 = User],
 * 将“"font\name=名称.ttf" 的值更改为 "font\name=字体的全名.ttf"
    不要在名称之前包含字体所在位置的路径。

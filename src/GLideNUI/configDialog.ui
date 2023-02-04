@@ -14,7 +14,7 @@
    </rect>
   </property>
   <property name="windowTitle">
-   <string>GLideN64 Settings</string>
+   <string>GLideN64 SceneRipper Settings</string>
   </property>
   <property name="windowIcon">
    <iconset resource="icon.qrc">
@@ -3714,7 +3714,7 @@
                   <string>1. The font preview only shows the regular style for the font family. Some styles like bold and italic display only in game.
 
 2. If the desired font is not listed above:
-* navigate to your installation where GLideN64.ini is located, and open it with a text editor.
+* navigate to your installation where GLideN64_sceneripper.ini is located, and open it with a text editor.
 * find your active profile [Default = User],
 * change the value of &quot;font\name=NAME.ttf&quot; to &quot;font\name=Full Name of Font.ttf&quot;
    do not include the path to where the font is located before the name.
@@ -3843,8 +3843,8 @@ The font's full name can be found in Settings&gt;Personalization&gt;Fonts</strin
         <rect>
          <x>9</x>
          <y>9</y>
-         <width>411</width>
-         <height>111</height>
+         <width>461</width>
+         <height>124</height>
         </rect>
        </property>
        <property name="sizePolicy">
@@ -3868,6 +3868,126 @@ The font's full name can be found in Settings&gt;Personalization&gt;Fonts</strin
        <property name="checked">
         <bool>false</bool>
        </property>
+       <widget class="QCheckBox" name="ripperContinuousCheckBox">
+        <property name="enabled">
+         <bool>true</bool>
+        </property>
+        <property name="geometry">
+         <rect>
+          <x>190</x>
+          <y>60</y>
+          <width>111</width>
+          <height>23</height>
+         </rect>
+        </property>
+        <property name="text">
+         <string>Continuous</string>
+        </property>
+       </widget>
+       <widget class="Line" name="ripperLine">
+        <property name="enabled">
+         <bool>false</bool>
+        </property>
+        <property name="geometry">
+         <rect>
+          <x>163</x>
+          <y>25</y>
+          <width>20</width>
+          <height>95</height>
+         </rect>
+        </property>
+        <property name="frameShadow">
+         <enum>QFrame::Plain</enum>
+        </property>
+        <property name="orientation">
+         <enum>Qt::Vertical</enum>
+        </property>
+       </widget>
+       <widget class="QCheckBox" name="ripperCSVExportCheckBox">
+        <property name="enabled">
+         <bool>true</bool>
+        </property>
+        <property name="geometry">
+         <rect>
+          <x>190</x>
+          <y>90</y>
+          <width>111</width>
+          <height>23</height>
+         </rect>
+        </property>
+        <property name="text">
+         <string>Export CSV</string>
+        </property>
+       </widget>
+       <widget class="QCheckBox" name="ripperEntireSceneCheckBox">
+        <property name="enabled">
+         <bool>true</bool>
+        </property>
+        <property name="geometry">
+         <rect>
+          <x>190</x>
+          <y>30</y>
+          <width>121</width>
+          <height>23</height>
+         </rect>
+        </property>
+        <property name="toolTip">
+         <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;When this option is enabled, the scene ripper will attempt to rip all triangles of the level.&lt;/p&gt;&lt;p&gt;Culled/clipped triangles will be included in the scene rip.&lt;/p&gt;&lt;p&gt;[Recommended:&lt;span style=&quot; font-style:italic;&quot;&gt; Checked, unless you run into crashing issues.&lt;/span&gt;]&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+        </property>
+        <property name="text">
+         <string>Entire Scene</string>
+        </property>
+        <property name="checked">
+         <bool>true</bool>
+        </property>
+       </widget>
+       <widget class="QSpinBox" name="ripperTargetSpinBox">
+        <property name="enabled">
+         <bool>false</bool>
+        </property>
+        <property name="geometry">
+         <rect>
+          <x>330</x>
+          <y>70</y>
+          <width>101</width>
+          <height>26</height>
+         </rect>
+        </property>
+        <property name="frame">
+         <bool>true</bool>
+        </property>
+        <property name="readOnly">
+         <bool>false</bool>
+        </property>
+        <property name="minimum">
+         <number>0</number>
+        </property>
+        <property name="maximum">
+         <number>99999</number>
+        </property>
+       </widget>
+       <widget class="QLabel" name="ripperTargetLabel">
+        <property name="enabled">
+         <bool>false</bool>
+        </property>
+        <property name="geometry">
+         <rect>
+          <x>330</x>
+          <y>50</y>
+          <width>101</width>
+          <height>17</height>
+         </rect>
+        </property>
+        <property name="layoutDirection">
+         <enum>Qt::LeftToRight</enum>
+        </property>
+        <property name="text">
+         <string>Target Frames</string>
+        </property>
+        <property name="textFormat">
+         <enum>Qt::RichText</enum>
+        </property>
+       </widget>
        <widget class="QComboBox" name="ripperRipmodeComboBox">
         <property name="enabled">
          <bool>true</bool>
@@ -3875,8 +3995,8 @@ The font's full name can be found in Settings&gt;Personalization&gt;Fonts</strin
         <property name="geometry">
          <rect>
           <x>10</x>
-          <y>50</y>
-          <width>121</width>
+          <y>80</y>
+          <width>151</width>
           <height>25</height>
          </rect>
         </property>
@@ -4050,25 +4170,9 @@ The font's full name can be found in Settings&gt;Personalization&gt;Fonts</strin
         </item>
         <item>
          <property name="text">
-          <string>Projection</string>
+          <string>Perspective</string>
          </property>
         </item>
-       </widget>
-       <widget class="QCheckBox" name="ripperContinuousCheckBox">
-        <property name="enabled">
-         <bool>true</bool>
-        </property>
-        <property name="geometry">
-         <rect>
-          <x>160</x>
-          <y>40</y>
-          <width>111</width>
-          <height>23</height>
-         </rect>
-        </property>
-        <property name="text">
-         <string>Continuous</string>
-        </property>
        </widget>
        <widget class="QLabel" name="rippperRipmodeLabel">
         <property name="enabled">
@@ -4077,7 +4181,7 @@ The font's full name can be found in Settings&gt;Personalization&gt;Fonts</strin
         <property name="geometry">
          <rect>
           <x>10</x>
-          <y>30</y>
+          <y>60</y>
           <width>121</width>
           <height>17</height>
          </rect>
@@ -4089,108 +4193,26 @@ The font's full name can be found in Settings&gt;Personalization&gt;Fonts</strin
          <enum>Qt::RichText</enum>
         </property>
        </widget>
-       <widget class="Line" name="ripperLine">
-        <property name="enabled">
-         <bool>false</bool>
-        </property>
-        <property name="geometry">
-         <rect>
-          <x>133</x>
-          <y>25</y>
-          <width>20</width>
-          <height>81</height>
-         </rect>
-        </property>
-        <property name="frameShadow">
-         <enum>QFrame::Plain</enum>
-        </property>
-        <property name="orientation">
-         <enum>Qt::Vertical</enum>
-        </property>
-       </widget>
-       <widget class="QCheckBox" name="ripperCSVExportCheckBox">
-        <property name="enabled">
-         <bool>true</bool>
-        </property>
-        <property name="geometry">
-         <rect>
-          <x>160</x>
-          <y>70</y>
-          <width>111</width>
-          <height>23</height>
-         </rect>
-        </property>
-        <property name="text">
-         <string>Export CSV</string>
-        </property>
-       </widget>
-       <widget class="QCheckBox" name="ripperEntireSceneCheckBox">
+       <widget class="QCheckBox" name="ripperUpdateRipModesCheckBox">
         <property name="enabled">
          <bool>true</bool>
         </property>
         <property name="geometry">
          <rect>
           <x>10</x>
-          <y>80</y>
-          <width>121</width>
+          <y>30</y>
+          <width>151</width>
           <height>23</height>
          </rect>
         </property>
         <property name="toolTip">
-         <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;When this option is enabled, the scene ripper will attempt to rip all triangles of the level.&lt;/p&gt;&lt;p&gt;Culled/clipped triangles will be included in the scene rip.&lt;/p&gt;&lt;p&gt;[Recommended:&lt;span style=&quot; font-style:italic;&quot;&gt; Checked, unless you run into crashing issues.&lt;/span&gt;]&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+         <string/>
         </property>
         <property name="text">
-         <string>Entire Scene</string>
+         <string>Update Rip Modes</string>
         </property>
         <property name="checked">
-         <bool>true</bool>
-        </property>
-       </widget>
-       <widget class="QSpinBox" name="ripperTargetSpinBox">
-        <property name="enabled">
          <bool>false</bool>
-        </property>
-        <property name="geometry">
-         <rect>
-          <x>280</x>
-          <y>60</y>
-          <width>101</width>
-          <height>26</height>
-         </rect>
-        </property>
-        <property name="frame">
-         <bool>true</bool>
-        </property>
-        <property name="readOnly">
-         <bool>false</bool>
-        </property>
-        <property name="minimum">
-         <number>0</number>
-        </property>
-        <property name="maximum">
-         <number>99999</number>
-        </property>
-       </widget>
-       <widget class="QLabel" name="ripperTargetLabel">
-        <property name="enabled">
-         <bool>false</bool>
-        </property>
-        <property name="geometry">
-         <rect>
-          <x>280</x>
-          <y>40</y>
-          <width>101</width>
-          <height>17</height>
-         </rect>
-        </property>
-        <property name="layoutDirection">
-         <enum>Qt::LeftToRight</enum>
-        </property>
-        <property name="text">
-         <string>Target Frames</string>
-        </property>
-        <property name="textFormat">
-         <enum>Qt::RichText</enum>
         </property>
        </widget>
       </widget>
@@ -4198,7 +4220,7 @@ The font's full name can be found in Settings&gt;Personalization&gt;Fonts</strin
        <property name="geometry">
         <rect>
          <x>10</x>
-         <y>140</y>
+         <y>160</y>
          <width>32</width>
          <height>38</height>
         </rect>
@@ -4217,7 +4239,7 @@ The font's full name can be found in Settings&gt;Personalization&gt;Fonts</strin
        <property name="geometry">
         <rect>
          <x>40</x>
-         <y>140</y>
+         <y>160</y>
          <width>701</width>
          <height>38</height>
         </rect>
@@ -4229,7 +4251,7 @@ The font's full name can be found in Settings&gt;Personalization&gt;Fonts</strin
         </sizepolicy>
        </property>
        <property name="text">
-        <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Requires 'Generate Scene Rip Textures' option in the Texture Enchancement tab.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+        <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Requires 'Generate scene rip textures' option in the Texture Enchancement tab.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
        </property>
        <property name="textFormat">
         <enum>Qt::RichText</enum>
@@ -4284,17 +4306,17 @@ The font's full name can be found in Settings&gt;Personalization&gt;Fonts</strin
            </property>
           </widget>
          </item>
-         <item row="0" column="0">
-          <widget class="QLabel" name="label">
-           <property name="text">
-            <string>Save settings for:</string>
-           </property>
-          </widget>
-         </item>
          <item row="0" column="2">
           <widget class="QRadioButton" name="settingsDestProfileRadioButton">
            <property name="text">
             <string>Settings profile:</string>
+           </property>
+          </widget>
+         </item>
+         <item row="0" column="0">
+          <widget class="QLabel" name="label">
+           <property name="text">
+            <string>Save settings for:</string>
            </property>
           </widget>
          </item>
@@ -4618,8 +4640,8 @@ The font's full name can be found in Settings&gt;Personalization&gt;Fonts</strin
   </connection>
  </connections>
  <buttongroups>
-  <buttongroup name="factorButtonGroup"/>
-  <buttongroup name="osdButtonGroup"/>
   <buttongroup name="fixTexrectCoordsButtonGroup"/>
+  <buttongroup name="osdButtonGroup"/>
+  <buttongroup name="factorButtonGroup"/>
  </buttongroups>
 </ui>

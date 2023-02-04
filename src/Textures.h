@@ -57,6 +57,29 @@ struct CachedTexture
 		fbMultiSample = 2
 	} frameBufferTexture;
 	bool bHDTexture;
+
+	bool operator==(const CachedTexture & _other) const
+	{
+		if(crc != _other.crc) return false;
+#ifdef DEBUG_DUMP
+		if(ripCrc != _other.ripCrc) return false;
+#endif
+		if(width != _other.width) return false;
+		if(height != _other.height) return false;
+		if(palette != _other.palette) return false;
+		if(offsetS != _other.offsetS) return false;
+		if(offsetT != _other.offsetT) return false;
+		if(scaleS != _other.scaleS) return false;
+		if(scaleT != _other.scaleT) return false;
+		if(shiftScaleS != _other.shiftScaleS) return false;
+		if(shiftScaleT != _other.shiftScaleT) return false;
+		return true;
+	}
+
+	bool operator!=(const CachedTexture & _other) const
+	{
+		return !(*this == _other);
+	}
 };
 
 struct TextureCache
@@ -84,7 +107,7 @@ private:
 		, m_hits(0)
 		, m_misses(0)
 		, m_curUnpackAlignment(4)
-		, m_toggleDumpTex(false)
+		, m_bToggleDumpTex(false)
 	{
 		current[0] = nullptr;
 		current[1] = nullptr;
@@ -116,7 +139,7 @@ private:
 	CachedTexture * m_pMSDummy;
 	u32 m_hits, m_misses;
 	s32 m_curUnpackAlignment;
-	bool m_toggleDumpTex;
+	bool m_bToggleDumpTex;
 	std::vector<u32> m_tempTextureHolder;
 
 #ifdef VC
