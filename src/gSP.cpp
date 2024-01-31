@@ -840,7 +840,7 @@ void gSPTransformVertex(u32 v, SPVertex * spVtx, float mtx[4][4])
 		}
 
 		g_debugger.setValidRipModes(valid_rip_mode); // uses current rip mode
-		
+
 		if(ripMode != 34)
 		{
 			config.sceneRipper.sceneRipMode = ripMode + 1;
@@ -883,7 +883,7 @@ void gSPProcessVertex(u32 v, SPVertex * spVtx)
 
 	if (gSP.matrix.billboard)
 		gSPBillboardVertex<VNUM>(v, spVtx);
-	
+
 	gSPClipVertex<VNUM>(v, spVtx);
 
 	if (gSP.geometryMode & G_LIGHTING) {
@@ -1780,20 +1780,12 @@ void gSPLightColor( u32 lightNum, u32 packedColor )
 
 void gSPFogFactor( s16 fm, s16 fo )
 {
-	// 256 fm = 1.0 fmf
-	// 0 fm = 0.0 fmf
-	// 256 fo = 1.0 fof
-	// 0 fo = 0.0 fof
-	fm = 0;
-	fo = 0;
 	gSP.fog.multiplier = fm;
 	gSP.fog.offset = fo;
 	gSP.fog.multiplierf = _FIXED2FLOAT(fm, 8);
 	gSP.fog.offsetf = _FIXED2FLOAT(fo, 8);
 
 	gSP.changed |= CHANGED_FOGPOSITION;
-	string args = "gSPFogFactor(" + to_string(fm) + ", " + to_string(fo) + "), " + to_string(gSP.fog.multiplierf) + ", " + to_string(gSP.fog.offsetf) + "\n";
-	//dwnd().getDrawer().showMessage(args, Milliseconds(1000));
 	DebugMsg(DEBUG_NORMAL, "gSPFogFactor( %i, %i );\n", fm, fo);
 }
 
