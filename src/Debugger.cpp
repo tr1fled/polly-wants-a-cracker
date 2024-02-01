@@ -1536,7 +1536,21 @@ s32 Debugger::_performSceneRip()
 			rip_v.r = v.r;
 			rip_v.g = v.g;
 			rip_v.b = v.b;
-			rip_v.a = v.a;
+
+			if ((tri.geometryMode & G_FOG) == 0) {
+				rip_v.a = v.a;
+			} else {
+				// Fog level
+				f32 f = 0.0;
+				if (v.w > 0 && v.z > 0) {
+					f = v.z / v.w * tri.fogMultiplier + tri.fogOffset;
+					if (f < 0.0)
+						f = 0.0;
+					if (f > 1.0)
+						f = 1.0;
+				}
+				rip_v.a = f;
+			}
 
 			// UV transform
 			// TODO: figure out and implement shiftScale offset
