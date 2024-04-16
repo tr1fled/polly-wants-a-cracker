@@ -1492,37 +1492,23 @@ s32 Debugger::_performSceneRip()
 		float offsetT[2] = {0.0f, 0.0f};
 
 		for (int i = 0; i != 2; ++i) {
-			if (tri.tex_info[i] && tri.tex_info[i]->usingTile) {
-				const CachedTexture &t = *tri.tex_info[i]->texture;
+			if (!tri.tex_info[i] || !tri.tex_info[i]->usingTile)
+				continue;
 
-				// check if tex1 is a valid multi-texture
-				if(i == 1) {
-					const CachedTexture &t0 = *tri.tex_info[0]->texture;
-					if(t0 == t) {
-						// tex0 and tex1 have the same values, don't use tex1
-						break;
-					}
-				}
+			const CachedTexture &t = *tri.tex_info[i]->texture;
 
-				// Read texture scale/offset for UV transform
-				scaleS[i] = (tri.tex_info[i]->scales * t.scaleS) * t.shiftScaleS;
-				scaleT[i] = (tri.tex_info[i]->scalet * t.scaleT) * t.shiftScaleT;
-				offsetS[i] = t.offsetS;
-				offsetT[i] = t.offsetT;
+			// Read texture scale/offset for UV transform
+			scaleS[i] = (tri.tex_info[i]->scales * t.scaleS) * t.shiftScaleS;
+			scaleT[i] = (tri.tex_info[i]->scalet * t.scaleT) * t.shiftScaleT;
+			offsetS[i] = t.offsetS;
+			offsetT[i] = t.offsetT;
 
-				RipTexInfo& rip_info = rip_tri.tex_info[i];
-				memcpy(&rip_info.crc, &t.ripCrc, 8);  // use memcpy for unaligned u64
-				rip_info.maskS = t.maskS;
-				rip_info.maskT = t.maskT;
-				rip_info.wrapS = bool(t.mirrorS) | (bool(t.clampS) << 1);
-				rip_info.wrapT = bool(t.mirrorT) | (bool(t.clampT) << 1);
-			} else {
-				if(i == 0) {
-					// tex0 is null, don't bother setting up tex1
-					// TODO: check if tex0 == null, tex1 != null condition exists (possible bug?)
-					break;
-				}
-			}
+			RipTexInfo& rip_info = rip_tri.tex_info[i];
+			memcpy(&rip_info.crc, &t.ripCrc, 8);  // use memcpy for unaligned u64
+			rip_info.maskS = t.maskS;
+			rip_info.maskT = t.maskT;
+			rip_info.wrapS = bool(t.mirrorS) | (bool(t.clampS) << 1);
+			rip_info.wrapT = bool(t.mirrorT) | (bool(t.clampT) << 1);
 		}
 
 		for (int i = 0; i != 3; ++i) {
