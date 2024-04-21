@@ -173,7 +173,7 @@ private:
 
 	struct RipHeader {
 		const u8 MAGIC[6] = { 'G', 'L', '6', '4', 'R', '\0'};
-		const u16 VERSION = 3;
+		const u16 VERSION = 4;
 		char romName[20] = {0};
 		u32 num_triangles = 0;
 		u32 microcode = 0;
