@@ -1569,10 +1569,6 @@ s32 Debugger::_performSceneRip()
 			rip_v.t0 = t * scaleT[0] + offsetT[0];
 			rip_v.s1 = s * scaleS[1] + offsetS[1];
 			rip_v.t1 = t * scaleT[1] + offsetT[1];
-
-			// Convert UV space to Blender's convention
-			rip_v.t0 = 1.0f - rip_v.t0;
-			rip_v.t1 = 1.0f - rip_v.t1;
 		}
 
 		rip_tri.fog_color = tri.fog_color;
