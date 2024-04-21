@@ -50,6 +50,7 @@ public:
 private:
 	struct TexInfo {
 		f32 scales, scalet;
+		f32 fuls, fult;
 		const CachedTexture * texture;
 		gDPLoadTileInfo texLoadInfo;
 		bool usingTile;

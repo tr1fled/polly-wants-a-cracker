@@ -293,6 +293,8 @@ void Debugger::_fillTriInfo(TriInfo & _info)
 			TexInfo * pInfo = new TexInfo;
 			pInfo->scales = gSP.texture.scales;
 			pInfo->scalet = gSP.texture.scalet;
+			pInfo->fuls = gSP.textureTile[i]->fuls;
+			pInfo->fult = gSP.textureTile[i]->fult;
 			pInfo->texture = cache.current[i];
 			pInfo->texLoadInfo = gDP.loadInfo[gSP.textureTile[i]->tmem];
 			pInfo->usingTile = currentCombiner()->usesTile(i);
@@ -1497,11 +1499,11 @@ s32 Debugger::_performSceneRip()
 
 			const CachedTexture &t = *tri.tex_info[i]->texture;
 
-			// Read texture scale/offset for UV transform
-			scaleS[i] = (tri.tex_info[i]->scales * t.scaleS) * t.shiftScaleS;
-			scaleT[i] = (tri.tex_info[i]->scalet * t.scaleT) * t.shiftScaleT;
-			offsetS[i] = t.offsetS;
-			offsetT[i] = t.offsetT;
+			// Compute texture scale/offset for UV transform
+			scaleS[i] = t.scaleS * tri.tex_info[i]->scales * t.shiftScaleS;
+			scaleT[i] = t.scaleT * tri.tex_info[i]->scalet * t.shiftScaleT;
+			offsetS[i] = t.scaleS * (t.offsetS - tri.tex_info[i]->fuls);
+			offsetT[i] = t.scaleT * (t.offsetT - tri.tex_info[i]->fult);
 
 			RipTexInfo& rip_info = rip_tri.tex_info[i];
 			memcpy(&rip_info.crc, &t.ripCrc, 8);  // use memcpy for unaligned u64
@@ -1538,12 +1540,24 @@ s32 Debugger::_performSceneRip()
 				rip_v.a = f;
 			}
 
+			// Each vertex specifies a single s,t texcoord pair, which
+			// is then transformed differently for tex0 and tex1,
+			// giving two texcoords, rip_v.s0,t0 and rip_v.s1,t1.
+			//
+			// This is easily confused with v.s0,t0 and v.s1,t1, which
+			// are both equal to the pre-transformed s,t.
+			float s = v.s0;
+			float t = v.t0;
+
 			// UV transform
-			// TODO: figure out and implement shiftScale offset
-			rip_v.s0 = (v.s0 * scaleS[0]) + offsetS[0];
-			rip_v.t0 = ((-v.t0 * scaleT[0]) + 1.0f) + offsetT[0];
-			rip_v.s1 = (v.s1 * scaleS[1]) + offsetS[1];
-			rip_v.t1 = ((-v.t1 * scaleT[1]) + 1.0f) + offsetT[1];
+			rip_v.s0 = s * scaleS[0] + offsetS[0];
+			rip_v.t0 = t * scaleT[0] + offsetT[0];
+			rip_v.s1 = s * scaleS[1] + offsetS[1];
+			rip_v.t1 = t * scaleT[1] + offsetT[1];
+
+			// Convert UV space to Blender's convention
+			rip_v.t0 = 1.0f - rip_v.t0;
+			rip_v.t1 = 1.0f - rip_v.t1;
 		}
 
 		rip_tri.fog_color = tri.fog_color;
