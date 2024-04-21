@@ -290,11 +290,13 @@ void Debugger::_fillTriInfo(TriInfo & _info)
 		for (u32 i = 0; i < 2; ++i) {
 			if (cache.current[i] == nullptr)
 				continue;
-			TexInfo * pInfo = new TexInfo;
+			TexInfo * pInfo = new TexInfo {0};
 			pInfo->scales = gSP.texture.scales;
 			pInfo->scalet = gSP.texture.scalet;
 			pInfo->fuls = gSP.textureTile[i]->fuls;
 			pInfo->fult = gSP.textureTile[i]->fult;
+			pInfo->tileWidth = ((gSP.textureTile[i]->lrs - gSP.textureTile[i]->uls) & 0x03FF) + 1;
+			pInfo->tileHeight = ((gSP.textureTile[i]->lrt - gSP.textureTile[i]->ult) & 0x03FF) + 1;
 			pInfo->texture = cache.current[i];
 			pInfo->texLoadInfo = gDP.loadInfo[gSP.textureTile[i]->tmem];
 			pInfo->usingTile = currentCombiner()->usesTile(i);
@@ -1507,10 +1509,23 @@ s32 Debugger::_performSceneRip()
 
 			RipTexInfo& rip_info = rip_tri.tex_info[i];
 			memcpy(&rip_info.crc, &t.ripCrc, 8);  // use memcpy for unaligned u64
-			rip_info.maskS = t.maskS;
-			rip_info.maskT = t.maskT;
-			rip_info.wrapS = bool(t.mirrorS) | (bool(t.clampS) << 1);
-			rip_info.wrapT = bool(t.mirrorT) | (bool(t.clampT) << 1);
+
+			// Clamp
+			if (t.clampS)
+				rip_info.clampS = tri.tex_info[i]->tileWidth / f32(t.width);
+			if (t.clampT)
+				rip_info.clampT = tri.tex_info[i]->tileHeight / f32(t.height);
+
+			// Wrap
+			// TODO: what's the difference between maskS/T and originalMaskS/T?
+			if (t.maskS)
+				rip_info.wrapS = f32(1 << t.maskS) / f32(t.width);
+			if (t.maskT)
+				rip_info.wrapT = f32(1 << t.maskT) / f32(t.height);
+
+			// Mirror
+			rip_info.mirrorS = bool(t.mirrorS);
+			rip_info.mirrorT = bool(t.mirrorT);
 		}
 
 		for (int i = 0; i != 3; ++i) {

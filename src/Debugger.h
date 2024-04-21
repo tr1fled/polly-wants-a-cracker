@@ -51,6 +51,7 @@ private:
 	struct TexInfo {
 		f32 scales, scalet;
 		f32 fuls, fult;
+		u32 tileWidth, tileHeight;
 		const CachedTexture * texture;
 		gDPLoadTileInfo texLoadInfo;
 		bool usingTile;
@@ -146,8 +147,10 @@ private:
 
 	struct RipTexInfo {
 		u8 crc[8];
-		u8 maskS, maskT;
-		u8 wrapS, wrapT;
+		f32 clampS, clampT;  // edge to clamp to, 0 = disable
+		f32 wrapS, wrapT;    // edge to wrap at, 0 = disable
+		u8 mirrorS, mirrorT; // enable mirror when wrapping
+		u8 padding[2];
 	};
 
 	struct RipTriangle {
