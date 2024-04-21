@@ -7,7 +7,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        image: ["GLideN64 (x64 Mupen64Plus-CLI)", "GLideN64 (x64 Mupen64Plus-Qt)"]
+        image: ["GLideN64 (x64 Mupen64Plus-Qt)"]
     steps:
       - uses: actions/checkout@v3
       - name: Install Packages
@@ -15,6 +15,9 @@ jobs:
           sudo apt-get -qq update
           sudo apt-get -y upgrade
           sudo apt-get -y install build-essential libgl1-mesa-dev qtbase5-dev qtchooser qt5-qmake qtbase5-dev-tools
+      - name: Print Qt Version
+        run: |
+          qmake --version
       - name: Prepare Environment
         run: |
           echo "GIT_REVISION=$(git rev-parse --short HEAD)" >> $GITHUB_ENV
@@ -23,7 +26,7 @@ jobs:
         run: |
           mkdir -p build/linux-mupen64plus-cli
           pushd build/linux-mupen64plus-cli
-          cmake -G "Unix Makefiles" -DCMAKE_BUILD_TYPE=Release -DMUPENPLUSAPI=1 -DMUPENPLUSAPI_GLIDENUI=0 ../../src/
+          cmake -G "Unix Makefiles" -DCMAKE_BUILD_TYPE=Release -DMUPENPLUSAPI=1 -DMUPENPLUSAPI_GLIDENUI=0 -DDEBUG_DUMP=ON ../../src/
           make -j$(nproc)
           popd
           cp build/linux-mupen64plus-cli/plugin/Release/*.so build/linux-mupen64plus-cli/
@@ -33,7 +36,7 @@ jobs:
         run: |
           mkdir -p build/linux-mupen64plus-qt
           pushd build/linux-mupen64plus-qt
-          cmake -G "Unix Makefiles" -DCMAKE_BUILD_TYPE=Release -DMUPENPLUSAPI=1 -DMUPENPLUSAPI_GLIDENUI=1 ../../src/
+          cmake -G "Unix Makefiles" -DCMAKE_BUILD_TYPE=Release -DMUPENPLUSAPI=1 -DMUPENPLUSAPI_GLIDENUI=1 -DDEBUG_DUMP=ON ../../src/
           make -j$(nproc)
           popd
           cp build/linux-mupen64plus-qt/plugin/Release/*.so build/linux-mupen64plus-qt/
@@ -60,7 +63,7 @@ jobs:
     runs-on: windows-latest
     strategy:
       matrix:
-        image: ["GLideN64 (x64 Project64-Qt)", "GLideN64 (x86 Project64-Qt)", "GLideN64 (x64 Project64-WTL)", "GLideN64 (x86 Project64-WTL)", "GLideN64 (x64 Mupen64Plus-CLI)", "GLideN64 (x86 Mupen64Plus-CLI)", "GLideN64 (x64 Mupen64Plus-Qt)"]
+        image: ["GLideN64 (x64 Mupen64Plus-Qt)"]
     env:
       QTDIR_x86: C:\Static_Qt_x86
       QTDIR_x64: C:\Static_Qt_x64
@@ -81,6 +84,10 @@ jobs:
             mingw-w64-x86_64-libpng
             mingw-w64-x86_64-qt5
             git
+      - name: Print Qt Version
+        run: |
+          qmake --version
+        shell: msys2 {0}
       - name: Prepare Environment
         run: |
           $env:revision = git rev-parse --short HEAD
@@ -93,7 +100,7 @@ jobs:
           echo "GIT_REVISION=$env:revision" >> $env:GITHUB_ENV
         shell: pwsh
       - name: Prepare Qt Builds
-        if: ${{ matrix.image == 'GLideN64 (x64 Project64-Qt)' || matrix.image == 'GLideN64 (x86 Project64-Qt)' || matrix.image == 'GLideN64 (x64 Mupen64Plus-Qt)' }}
+        if: ${{ matrix.image == 'GLideN64 (x64 Project64-Qt)' || matrix.image == 'GLideN64 (x86 Project64-Qt)' }}
         run: |
           curl -L -o %QT_BUILD_x86%.7z %QT_BUILD_BASE_URL%/%QT_BUILD_x86%.7z
           curl -L -o %QT_BUILD_x64%.7z %QT_BUILD_BASE_URL%/%QT_BUILD_x64%.7z
@@ -153,7 +160,7 @@ jobs:
         run: |
           mkdir -p build/windows-mupen64plus-qt
           pushd build/windows-mupen64plus-qt
-          cmake -DCMAKE_BUILD_TYPE=Release -DMUPENPLUSAPI=1 -DMUPENPLUSAPI_GLIDENUI=1 -G "MSYS Makefiles" ../../src
+          cmake -DCMAKE_BUILD_TYPE=Release -DMUPENPLUSAPI=1 -DMUPENPLUSAPI_GLIDENUI=1 -DDEBUG_DUMP=ON -G "MSYS Makefiles" ../../src
           make -j$(nproc)
           popd
           cp ini/GLideN64_sceneripper.custom.ini build/windows-mupen64plus-qt/
@@ -236,7 +243,7 @@ jobs:
         run: |
           cd artifacts
           for artifact in *
-          do 
+          do
             echo "-> Creating ${artifact}.zip"
             pushd "$artifact"
             zip -r "../${artifact}.zip" *
@@ -249,9 +256,10 @@ jobs:
       - name: Create Release
         uses: ncipollo/release-action@v1
         with:
-          prerelease: true
           allowUpdates: true
           removeArtifacts: true
           replacesArtifacts: false
+          omitBodyDuringUpdate: true
+          omitNameDuringUpdate: true
           tag: github-actions
           artifacts: "artifacts/*.zip"
