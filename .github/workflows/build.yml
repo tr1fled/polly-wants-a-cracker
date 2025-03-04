@@ -9,9 +9,11 @@ jobs:
       matrix:
         image: ["GLideN64 (x64 Mupen64Plus-Qt)"]
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - name: Install Packages
         run: |
+          echo "Doctor House the patient is dying!!!! Do something!!!"
+          echo "Doctor House:"
           sudo apt-get -qq update
           sudo apt-get -y upgrade
           sudo apt-get -y install build-essential libgl1-mesa-dev qtbase5-dev qtchooser qt5-qmake qtbase5-dev-tools
