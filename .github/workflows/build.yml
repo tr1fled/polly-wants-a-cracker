@@ -12,7 +12,7 @@ jobs:
       QT_VERSION: "6.8.2"  # Updated Qt version
       QT_HOST: "windows"   # Host platform
       QT_TARGET: "desktop" # Target platform
-      QT_ARCH: "win64_msvc2022_64"  # Updated architecture
+      QT_ARCH: "msvc2022_64"  # Updated architecture
     steps:
       - uses: actions/checkout@v4
 
@@ -25,7 +25,28 @@ jobs:
         run: |
           echo "Doctor House: 'Installing Qt6... This better work.'"
           pip install aqtinstall
-          aqt install-qt ${{ env.QT_HOST }} ${{ env.QT_TARGET }} ${{ env.QT_VERSION }} ${{ env.QT_ARCH }}
+          aqt list-qt ${{ env.QT_HOST }} ${{ env.QT_TARGET }} --modules ${{ env.QT_VERSION }} ${{ env.QT_ARCH }}  # List available modules
+          aqt install-qt ${{ env.QT_HOST }} ${{ env.QT_TARGET }} ${{ env.QT_VERSION }} ${{ env.QT_ARCH }} -m qtbase qttools qttranslations
+
+      - name: Verify Qt Installation
+        run: |
+          echo "Doctor House: 'Let's verify the Qt installation...'"
+          $QTDIR = "$pwd\${{ env.QT_VERSION }}\${{ env.QT_ARCH }}"
+          if (Test-Path "$QTDIR\bin\qmake.exe") {
+            echo "Qt installation verified. qmake.exe found at $QTDIR\bin\qmake.exe"
+          } else {
+            echo "ERROR: qmake.exe not found at $QTDIR\bin\qmake.exe"
+            exit 1
+          }
+        shell: pwsh
+
+      - name: Print Qt Version
+        run: |
+          echo "Doctor House: 'Let's see what version of Qt we're dealing with...'"
+          $QTDIR = "$pwd\${{ env.QT_VERSION }}\${{ env.QT_ARCH }}"
+          & "$QTDIR\bin\qmake.exe" --version
+        shell: pwsh
+
       - name: Set up MSBuild
         uses: microsoft/setup-msbuild@v2
 
@@ -40,13 +61,6 @@ jobs:
             mingw-w64-x86_64-freetype
             mingw-w64-x86_64-libpng
             git
-
-      - name: Print Qt Version
-        run: |
-          echo "Doctor House: 'Let's see what version of Qt we're dealing with...'"
-          $QTDIR = "C:\Qt\${{ env.QT_VERSION }}\${{ env.QT_ARCH }}"
-          & "$QTDIR\bin\qmake.exe" --version
-        shell: pwsh
 
       - name: Prepare Environment
         run: |
@@ -63,7 +77,7 @@ jobs:
         if: ${{ matrix.image == 'GLideN64 (x64 Mupen64Plus-Qt)' }}
         run: |
           echo "Doctor House: 'Building GLideN64 for Mupen64Plus-Qt x64...'"
-          $QTDIR = "C:\Qt\${{ env.QT_VERSION }}\${{ env.QT_ARCH }}"
+          $QTDIR = "$pwd\${{ env.QT_VERSION }}\${{ env.QT_ARCH }}"
           mkdir -p build/windows-mupen64plus-qt
           pushd build/windows-mupen64plus-qt
           cmake -G "Ninja" -DCMAKE_BUILD_TYPE=Release -DMUPENPLUSAPI=1 -DMUPENPLUSAPI_GLIDENUI=1 -DDEBUG_DUMP=ON -DCMAKE_PREFIX_PATH="$QTDIR" ../../src
