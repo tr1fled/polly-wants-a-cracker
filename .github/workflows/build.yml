@@ -54,6 +54,11 @@ jobs:
             mingw-w64-x86_64-libpng
             git
 
+      - name: Install Ninja
+        run: |
+          echo "Doctor House: 'Installing Ninja build system...'"
+          choco install ninja -y
+
       - name: Print Qt Version
         run: |
           echo "Doctor House: 'Let's see what version of Qt we're dealing with...'"
@@ -76,7 +81,7 @@ jobs:
         if: ${{ matrix.image == 'GLideN64 (x64 Mupen64Plus-Qt)' }}
         run: |
           echo "Doctor House: 'Building GLideN64 for Mupen64Plus-Qt x64...'"
-          $QTDIR = "$pwd\${{ env.QT_VERSION }}\${{ env.QT_ARCH }}"
+          $QTDIR = "$pwd\6.8.2\msvc2022_64"
           mkdir -p build/windows-mupen64plus-qt
           pushd build/windows-mupen64plus-qt
           cmake -G "Ninja" -DCMAKE_BUILD_TYPE=Release -DMUPENPLUSAPI=1 -DMUPENPLUSAPI_GLIDENUI=1 -DDEBUG_DUMP=ON -DCMAKE_PREFIX_PATH="$QTDIR" ../../src
