@@ -25,8 +25,7 @@ jobs:
         run: |
           echo "Doctor House: 'Installing Qt6... This better work.'"
           pip install aqtinstall
-          aqt install-qt ${{ env.QT_HOST }} ${{ env.QT_TARGET }} ${{ env.QT_VERSION }} ${{ env.QT_ARCH }} -m qtbase qttools qttranslations
-
+          aqt install-qt ${{ env.QT_HOST }} ${{ env.QT_TARGET }} ${{ env.QT_VERSION }} ${{ env.QT_ARCH }}
       - name: Set up MSBuild
         uses: microsoft/setup-msbuild@v2
 
