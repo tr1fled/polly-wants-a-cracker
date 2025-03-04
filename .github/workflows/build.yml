@@ -12,7 +12,7 @@ jobs:
       QT_VERSION: "6.8.2"  # Updated Qt version
       QT_HOST: "windows"   # Host platform
       QT_TARGET: "desktop" # Target platform
-      QT_ARCH: "msvc2022_64"  # Updated architecture
+      QT_ARCH: "win64_msvc2022_64"  # Updated architecture
     steps:
       - uses: actions/checkout@v4
 
@@ -25,8 +25,7 @@ jobs:
         run: |
           echo "Doctor House: 'Installing Qt6... This better work.'"
           pip install aqtinstall
-          aqt list-qt ${{ env.QT_HOST }} ${{ env.QT_TARGET }} --modules ${{ env.QT_VERSION }} ${{ env.QT_ARCH }}  # List available modules
-          aqt install-qt ${{ env.QT_HOST }} ${{ env.QT_TARGET }} ${{ env.QT_VERSION }} ${{ env.QT_ARCH }}  # Install Qt without specifying modules
+          aqt install-qt ${{ env.QT_HOST }} ${{ env.QT_TARGET }} ${{ env.QT_VERSION }} ${{ env.QT_ARCH }}
 
       - name: Verify Qt Installation
         run: |
@@ -38,13 +37,6 @@ jobs:
             echo "ERROR: qmake.exe not found at $QTDIR\bin\qmake.exe"
             exit 1
           }
-        shell: pwsh
-
-      - name: Print Qt Version
-        run: |
-          echo "Doctor House: 'Let's see what version of Qt we're dealing with...'"
-          $QTDIR = "$pwd\${{ env.QT_VERSION }}\${{ env.QT_ARCH }}"
-          & "$QTDIR\bin\qmake.exe" --version
         shell: pwsh
 
       - name: Set up MSBuild
@@ -61,6 +53,13 @@ jobs:
             mingw-w64-x86_64-freetype
             mingw-w64-x86_64-libpng
             git
+
+      - name: Print Qt Version
+        run: |
+          echo "Doctor House: 'Let's see what version of Qt we're dealing with...'"
+          $QTDIR = "$pwd\${{ env.QT_VERSION }}\${{ env.QT_ARCH }}"
+          & "$QTDIR\bin\qmake.exe" --version
+        shell: pwsh
 
       - name: Prepare Environment
         run: |
