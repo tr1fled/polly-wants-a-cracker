@@ -16,7 +16,7 @@ jobs:
           echo "Doctor House: 'Fine, I'll update the packages...'"
           sudo apt-get -qq update
           sudo apt-get -y upgrade
-          sudo apt-get -y install build-essential libgl1-mesa-dev qtbase5-dev qtchooser qt5-qmake qtbase5-dev-tools
+          sudo apt-get -y install build-essential libgl1-mesa-dev qtbase6-dev qtchooser qt6-qmake qtbase6-dev-tools
       - name: Print Qt Version
         run: |
           echo "Doctor House: 'Let's see what version of Qt we're dealing with...'"
