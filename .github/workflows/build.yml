@@ -30,7 +30,7 @@ jobs:
       - name: Verify Qt Installation
         run: |
           echo "Doctor House: 'Let's verify the Qt installation...'"
-          $QTDIR = "$pwd\${{ env.QT_VERSION }}\${{ env.QT_ARCH }}"
+          $QTDIR = "$pwd\msvc2022_64\${{ env.QT_ARCH }}"
           if (Test-Path "$QTDIR\bin\qmake.exe") {
             echo "Qt installation verified. qmake.exe found at $QTDIR\bin\qmake.exe"
           } else {
