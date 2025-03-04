@@ -1,7 +1,7 @@
 
 # GLideN64-SceneRipper
 
-*A next generation* ***Graphics Plugin*** *for* ***N64*** *emulators.*
+*An old generation* ***Graphics Plugin*** *for* ***N64*** *emulators.*
 
 ---
 
