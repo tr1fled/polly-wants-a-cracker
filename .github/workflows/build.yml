@@ -9,7 +9,7 @@ jobs:
       matrix:
         image: ["GLideN64 (x64 Mupen64Plus-Qt)"]
     env:
-      QT_VERSION: "6.6.0"  # Updated Qt version
+      QT_VERSION: "6.8.2"  # Updated Qt version
       QT_HOST: "windows"   # Host platform
       QT_TARGET: "desktop" # Target platform
       QT_ARCH: "win64_msvc2022_64"  # Updated architecture
