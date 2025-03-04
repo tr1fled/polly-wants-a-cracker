@@ -26,7 +26,7 @@ jobs:
           echo "Doctor House: 'Installing Qt6... This better work.'"
           pip install aqtinstall
           aqt list-qt ${{ env.QT_HOST }} ${{ env.QT_TARGET }} --modules ${{ env.QT_VERSION }} ${{ env.QT_ARCH }}  # List available modules
-          aqt install-qt ${{ env.QT_HOST }} ${{ env.QT_TARGET }} ${{ env.QT_VERSION }} ${{ env.QT_ARCH }} -m qtbase qttools qttranslations
+          aqt install-qt ${{ env.QT_HOST }} ${{ env.QT_TARGET }} ${{ env.QT_VERSION }} ${{ env.QT_ARCH }}
 
       - name: Verify Qt Installation
         run: |
