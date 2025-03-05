@@ -59,6 +59,16 @@ jobs:
           echo "Doctor House: 'Installing Ninja build system...'"
           choco install ninja -y
 
+      - name: Install ZLIB
+        run: |
+          echo "Doctor House: 'Installing ZLIB...'"
+          choco install zlib -y
+
+      - name: Install Vulkan SDK (Optional)
+        run: |
+          echo "Doctor House: 'Installing Vulkan SDK...'"
+          choco install vulkan-sdk -y
+
       - name: Print Qt Version
         run: |
           echo "Doctor House: 'Let's see what version of Qt we're dealing with...'"
