@@ -1,6 +1,12 @@
-name: GLideN64
+name: Build GLideN64 with Qt 6
 
-on: [push, pull_request, workflow_dispatch]
+on:
+  push:
+    branches:
+      - master
+  pull_request:
+    branches:
+      - master
 
 jobs:
   Windows:
@@ -9,41 +15,15 @@ jobs:
       matrix:
         image: ["GLideN64 (x64 Mupen64Plus-Qt)"]
     env:
-      QT_VERSION: "6.8.2"  # Updated Qt version
-      QT_HOST: "windows"   # Host platform
-      QT_TARGET: "desktop" # Target platform
-      QT_ARCH: "win64_msvc2022_64"  # Updated architecture
+      QTDIR_x86: C:\Static_Qt_x86
+      QTDIR_x64: C:\Static_Qt_x64
+      QT_BUILD_BASE_URL: https://github.com/gonetz/GLideN64/releases/download/qt_build/
+      QT_BUILD_x86: qt-6.0-x86-msvc2019-static
+      QT_BUILD_x64: qt-6.0-x64-msvc2019-static
     steps:
       - uses: actions/checkout@v4
-
-      - name: Set up Python for aqtinstall
-        uses: actions/setup-python@v4
-        with:
-          python-version: "3.9"
-
-      - name: Install Qt6 using aqtinstall
-        run: |
-          echo "Doctor House: 'Installing Qt6... This better work.'"
-          pip install aqtinstall
-          aqt install-qt ${{ env.QT_HOST }} ${{ env.QT_TARGET }} ${{ env.QT_VERSION }} ${{ env.QT_ARCH }}
-
-      - name: Verify Qt Installation
-        run: |
-          echo "Doctor House: 'Let's verify the Qt installation...'"
-          $QTDIR = "$pwd\6.8.2\msvc2022_64"
-          if (Test-Path "$QTDIR\bin\qmake.exe") {
-            echo "Qt installation verified. qmake.exe found at $QTDIR\bin\qmake.exe"
-          } else {
-            echo "ERROR: qmake.exe not found at $QTDIR\bin\qmake.exe"
-            exit 1
-          }
-        shell: pwsh
-
-      - name: Set up MSBuild
-        uses: microsoft/setup-msbuild@v2
-
-      - name: Set up MSYS2
-        uses: msys2/setup-msys2@v2
+      - uses: microsoft/setup-msbuild@v2
+      - uses: msys2/setup-msys2@v2
         with:
           update: true
           install: >-
@@ -52,33 +32,13 @@ jobs:
             mingw-w64-x86_64-gcc
             mingw-w64-x86_64-freetype
             mingw-w64-x86_64-libpng
+            mingw-w64-x86_64-qt6
             git
-
-      - name: Install Ninja
-        run: |
-          echo "Doctor House: 'Installing Ninja build system...'"
-          choco install ninja -y
-
-      - name: Set up vcpkg
-        run: |
-          echo "Doctor House: 'Setting up vcpkg...'"
-          git clone https://github.com/microsoft/vcpkg.git
-          pushd vcpkg
-          ./bootstrap-vcpkg.sh
-          popd
-
-      - name: Install ZLIB using vcpkg
-        run: |
-          echo "Doctor House: 'Installing ZLIB using vcpkg...'"
-          ./vcpkg/vcpkg install zlib
-
       - name: Print Qt Version
         run: |
           echo "Doctor House: 'Let's see what version of Qt we're dealing with...'"
-          $QTDIR = "$pwd\6.8.2\msvc2022_64"
-          & "$QTDIR\bin\qmake.exe" --version
-        shell: pwsh
-
+          qmake --version
+        shell: msys2 {0}
       - name: Prepare Environment
         run: |
           echo "Doctor House: 'Preparing the environment...'"
@@ -91,21 +51,27 @@ jobs:
           echo "Mupen64PluginsDir_x64=$pwd\build\windows-mupen64plus-cli-x64\" >> $env:GITHUB_ENV
           echo "GIT_REVISION=$env:revision" >> $env:GITHUB_ENV
         shell: pwsh
-
+      - name: Prepare Qt Builds
+        if: ${{ matrix.image == 'GLideN64 (x64 Project64-Qt)' || matrix.image == 'GLideN64 (x86 Project64-Qt)' }}
+        run: |
+          echo "Doctor House: 'Preparing Qt builds...'"
+          curl -L -o %QT_BUILD_x86%.7z %QT_BUILD_BASE_URL%/%QT_BUILD_x86%.7z
+          curl -L -o %QT_BUILD_x64%.7z %QT_BUILD_BASE_URL%/%QT_BUILD_x64%.7z
+          7z x -o%QTDIR_x86% %QT_BUILD_x86%.7z
+          7z x -o%QTDIR_x64% %QT_BUILD_x64%.7z
+        shell: cmd
       - name: Build GLideN64 (x64 Mupen64Plus-Qt)
         if: ${{ matrix.image == 'GLideN64 (x64 Mupen64Plus-Qt)' }}
         run: |
           echo "Doctor House: 'Building GLideN64 for Mupen64Plus-Qt x64...'"
-          $QTDIR = "$pwd\6.8.2\msvc2022_64"
           mkdir -p build/windows-mupen64plus-qt
           pushd build/windows-mupen64plus-qt
-          cmake -G "Ninja" -DCMAKE_BUILD_TYPE=Release -DMUPENPLUSAPI=1 -DMUPENPLUSAPI_GLIDENUI=1 -DDEBUG_DUMP=ON -DGLIDENUI_QT6=ON -DCMAKE_PREFIX_PATH="$QTDIR" -DCMAKE_TOOLCHAIN_FILE="$pwd/vcpkg/scripts/buildsystems/vcpkg.cmake" ../../src
-          cmake --build . --config Release --parallel
+          cmake -DCMAKE_BUILD_TYPE=Release -DMUPENPLUSAPI=1 -DMUPENPLUSAPI_GLIDENUI=1 -DDEBUG_DUMP=ON -G "MSYS Makefiles" ../../src
+          make -j$(nproc)
           popd
           cp ini/GLideN64_sceneripper.custom.ini build/windows-mupen64plus-qt/
           cp translations/release/*.qm build/windows-mupen64plus-qt/
-        shell: pwsh
-
+        shell: msys2 {0}
       - name: Upload GLideN64 (x64 Mupen64Plus-Qt)
         uses: actions/upload-artifact@v4
         if: ${{ matrix.image == 'GLideN64 (x64 Mupen64Plus-Qt)' }}
@@ -115,3 +81,39 @@ jobs:
             build\windows-mupen64plus-qt\*.dll
             build\windows-mupen64plus-qt\GLideN64_sceneripper.custom.ini
             build\windows-mupen64plus-qt\*.qm
+  Release:
+    runs-on: ubuntu-latest
+    needs: [Windows]
+    if: github.ref == 'refs/heads/master'
+    steps:
+      - uses: actions/checkout@v4
+      - name: Download Artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: artifacts
+      - name: Re-Package Artifacts
+        run: |
+          echo "Doctor House: 'Re-packaging artifacts...'"
+          cd artifacts
+          for artifact in *
+          do
+            echo "-> Creating ${artifact}.zip"
+            pushd "$artifact"
+            zip -r "../${artifact}.zip" *
+            popd
+          done
+      - name: Update Git Tag
+        run: |
+          echo "Doctor House: 'Updating Git tag...'"
+          git tag -f github-actions
+          git push -f origin github-actions
+      - name: Create Release
+        uses: ncipollo/release-action@v2
+        with:
+          allowUpdates: true
+          removeArtifacts: true
+          replacesArtifacts: false
+          omitBodyDuringUpdate: true
+          omitNameDuringUpdate: true
+          tag: github-actions
+          artifacts: "artifacts/*.zip"
