@@ -59,15 +59,16 @@ jobs:
           echo "Doctor House: 'Installing Ninja build system...'"
           choco install ninja -y
 
-      - name: Install ZLIB
+      - name: Set up vcpkg
         run: |
-          echo "Doctor House: 'Installing ZLIB...'"
-          choco install zlib -y
+          echo "Doctor House: 'Setting up vcpkg...'"
+          git clone https://github.com/microsoft/vcpkg.git
+          ./vcpkg/bootstrap-vcpkg.sh
 
-      - name: Install Vulkan SDK (Optional)
+      - name: Install ZLIB using vcpkg
         run: |
-          echo "Doctor House: 'Installing Vulkan SDK...'"
-          choco install vulkan-sdk -y
+          echo "Doctor House: 'Installing ZLIB using vcpkg...'"
+          ./vcpkg/vcpkg install zlib
 
       - name: Print Qt Version
         run: |
@@ -94,7 +95,7 @@ jobs:
           $QTDIR = "$pwd\6.8.2\msvc2022_64"
           mkdir -p build/windows-mupen64plus-qt
           pushd build/windows-mupen64plus-qt
-          cmake -G "Ninja" -DCMAKE_BUILD_TYPE=Release -DMUPENPLUSAPI=1 -DMUPENPLUSAPI_GLIDENUI=1 -DDEBUG_DUMP=ON -DGLIDENUI_QT6=ON -DCMAKE_PREFIX_PATH="$QTDIR" ../../src
+          cmake -G "Ninja" -DCMAKE_BUILD_TYPE=Release -DMUPENPLUSAPI=1 -DMUPENPLUSAPI_GLIDENUI=1 -DDEBUG_DUMP=ON -DGLIDENUI_QT6=ON -DCMAKE_PREFIX_PATH="$QTDIR" -DCMAKE_TOOLCHAIN_FILE="$pwd/vcpkg/scripts/buildsystems/vcpkg.cmake" ../../src
           cmake --build . --config Release --parallel
           popd
           cp ini/GLideN64_sceneripper.custom.ini build/windows-mupen64plus-qt/
