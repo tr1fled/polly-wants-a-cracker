@@ -63,7 +63,9 @@ jobs:
         run: |
           echo "Doctor House: 'Setting up vcpkg...'"
           git clone https://github.com/microsoft/vcpkg.git
-          ./vcpkg/bootstrap-vcpkg.sh
+          pushd vcpkg
+          ./bootstrap-vcpkg.sh
+          popd
 
       - name: Install ZLIB using vcpkg
         run: |
@@ -83,6 +85,8 @@ jobs:
           $env:revision = git rev-parse --short HEAD
           echo "PJ64PluginsDirQT=$pwd\build\windows-project64-qt\" >> $env:GITHUB_ENV
           echo "PJ64PluginsDirQT_x64=$pwd\build\windows-project64-qt-x64\" >> $env:GITHUB_ENV
+          echo "PJ64PluginsDirWTL=$pwd\build\windows-project64-wtl\" >> $env:GITHUB_ENV
+          echo "PJ64PluginsDirWTL_x64=$pwd\build\windows-project64-wtl-x64\" >> $env:GITHUB_ENV
           echo "Mupen64PluginsDir=$pwd\build\windows-mupen64plus-cli\" >> $env:GITHUB_ENV
           echo "Mupen64PluginsDir_x64=$pwd\build\windows-mupen64plus-cli-x64\" >> $env:GITHUB_ENV
           echo "GIT_REVISION=$env:revision" >> $env:GITHUB_ENV
